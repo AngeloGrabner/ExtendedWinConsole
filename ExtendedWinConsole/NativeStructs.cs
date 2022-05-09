@@ -34,7 +34,7 @@ namespace ExtendedWinConsole
             this.y = y;
         }
     }
-    [StructLayout(LayoutKind.Explicit)]
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)]
     public struct CHAR_INFO
     {
         [FieldOffset(0)]

@@ -22,6 +22,12 @@ namespace ExtendedWinConsole
               Console.BufferWidth=_width;
               Console.BufferHeight=_height;
             _outputBuffer = new CHAR_INFO[_width*_height];
+            for (int i = 0; i < _outputBuffer.Length; i++)
+            {
+                _outputBuffer[i] = new CHAR_INFO();
+                _outputBuffer[i].Attributes = 0;
+                _outputBuffer[i].UnicodeChar = ' ';
+            }
         }
         public static void setColor()
         {
