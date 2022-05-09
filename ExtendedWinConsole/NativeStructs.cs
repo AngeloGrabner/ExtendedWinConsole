@@ -17,6 +17,10 @@ namespace ExtendedWinConsole
             Right = right;
             Bottom = bottom;
         }
+        public override string ToString()
+        {
+            return $"Ledt: {Left}, Top: {Top}, Right {Right}, Bottom: {Bottom}";
+        }
     }
     [StructLayout(LayoutKind.Sequential)]
     public struct COORD
@@ -34,11 +38,11 @@ namespace ExtendedWinConsole
     public struct CHAR_INFO
     {
         [FieldOffset(0)]
-        char UnicodeChar;
+        public char UnicodeChar;
         [FieldOffset(0)]
-        char AsciiChar;
+        public char AsciiChar;
         [FieldOffset(2)] //2 bytes seems to work properly
-        UInt16 Attributes;
+        public UInt16 Attributes;
     }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct CONSOLE_FONT_INFOEX
