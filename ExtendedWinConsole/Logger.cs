@@ -14,11 +14,11 @@
         }
         public void addError(string message)
         {
-            log.Add($"{"Error:",tagDistance}{message,messageDistance}{DateTime.Now,timeStampDistance}");
+            log.Add($"{"Error:",tagDistance} {message,messageDistance} {DateTime.Now,timeStampDistance}");
         }
         public void addInfo(string message)
         {
-            log.Add($"{"Info:",tagDistance}{message,messageDistance}{DateTime.Now,timeStampDistance}");
+            log.Add($"{"Info:",tagDistance} {message,messageDistance} {DateTime.Now,timeStampDistance}");
         }
         public string getLatest()
         {

@@ -30,7 +30,14 @@ namespace ExtendedWinConsole
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleScreenBufferInfoEx(SafeFileHandle hConsoleOuput, ref CONSOLE_SCREEN_BUFFER_INFO_EX lpConsoleScreenBufferInfo);
 
-        
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool MoveWindow(SafeFileHandle hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, ExactSpelling = true, SetLastError = true)]
+        internal static extern bool GetWindowRect(SafeFileHandle hWnd, ref SMALL_RECT rect);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern SafeFileHandle GetConsoleWindow();
     }
     public enum HandleType
     {

@@ -6,10 +6,10 @@ namespace ExtendedWinConsole
     [StructLayout(LayoutKind.Sequential)]
     public struct SMALL_RECT
     {
-        short Left;
-        short Top;
-        short Right;
-        short Bottom;
+        public short Left;
+        public short Top;
+        public short Right;
+        public short Bottom;
         public SMALL_RECT(short left, short top, short right, short bottom)
         {
             Left = left;
