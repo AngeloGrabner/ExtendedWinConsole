@@ -3,7 +3,7 @@ class Testing
 {
     static void Main()
     {
-        ExtendedConsole.WriteLine("abcdeqbgiujqoligujhboilskugjhbaolsrjkghbfajglakjbvoruzqouijsaobv");
+        ExtendedConsole.WriteLine("abcdeqbgiujqoligujhboilskugjhbaolsrjkghbfajglakjbvoruzqouijsaobvwgbkjebgkjqbgksjgbkegbkjvajsljgvjsn aj jh");
         ExtendedConsole.updateBuffer();
         Console.ReadLine();
     }

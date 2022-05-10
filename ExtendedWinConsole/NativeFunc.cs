@@ -8,8 +8,8 @@ namespace ExtendedWinConsole
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern SafeFileHandle GetStdHandle(HandleType nStdHandle);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "WriteConsoleOutputW")]
-        internal static extern bool WriteConsoleOutput(
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool WriteConsoleOutput(
             SafeFileHandle hConsoleOutput,
             CHAR_INFO[] lpBuffer,
             COORD dwBufferSize,
