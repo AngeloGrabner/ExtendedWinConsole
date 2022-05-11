@@ -44,9 +44,9 @@ namespace ExtendedWinConsole
                 _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
                 throw new Exception("error while getting rect of window");
             }
-            //ResizeWindow(20, 20);
+            //SetWindowSize(20, 20);
         }
-        public static bool ResizeWindow(int width, int height)
+        public static bool SetWindowSize(int width, int height)
         {
             CONSOLE_FONT_INFOEX? CFIX = new CONSOLE_FONT_INFOEX?();
             CFIX = GetFont();
@@ -102,11 +102,7 @@ namespace ExtendedWinConsole
                 _outputBuffer[i].Attributes = 15;
                 _outputBuffer[i].UnicodeChar = ' ';
             }
-#pragma warning disable
-            Console.BufferHeight = Console.WindowHeight = _height;
-            Console.BufferWidth = Console.WindowWidth = _width;
-#pragma warning restore
-           
+            //to be added SetConsoleScreenBufferSize 
         }
         public static void SetBufferSize(COORD size)
         {
