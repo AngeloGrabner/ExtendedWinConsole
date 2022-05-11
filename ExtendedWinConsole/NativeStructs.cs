@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Drawing;
+using System;
 
 namespace ExtendedWinConsole
 {
@@ -47,23 +48,28 @@ namespace ExtendedWinConsole
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct CONSOLE_FONT_INFOEX
     {
-        public CONSOLE_FONT_INFOEX()
+        public CONSOLE_FONT_INFOEX(int VOID = 0)
         {
             cbSize = (uint)Marshal.SizeOf<CONSOLE_FONT_INFOEX>();
+            nFont = 0;
+            dwFontSize = new(0, 0);
+            FontFamily = 0;
+            FontWeight = 0;
+            FaceName = String.Empty;
         }
-        public uint cbSize = 0;
-        public uint nFont = 0;
-        public COORD dwFontSize = new COORD(0,0);
-        public int FontFamily = 0;
-        public int FontWeight = 0;
+        public uint cbSize;
+        public uint nFont;
+        public COORD dwFontSize;
+        public int FontFamily;
+        public int FontWeight;
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string FaceName = String.Empty;
+        public string FaceName;
     }
     [StructLayout(LayoutKind.Sequential)]
     public struct CONSOLE_SCREEN_BUFFER_INFO_EX
     {
-        public CONSOLE_SCREEN_BUFFER_INFO_EX()
+        public CONSOLE_SCREEN_BUFFER_INFO_EX(int VOID = 0)
         {
             cbSize= (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
             dwSize = new COORD(0,0);
@@ -74,6 +80,7 @@ namespace ExtendedWinConsole
 
             wPopupAttributes = 0;
             bFullscreenSupported = false;
+            ColorTable = new COLORREF[16];
         }
         public uint cbSize;
         public COORD dwSize;
@@ -86,7 +93,7 @@ namespace ExtendedWinConsole
         public bool bFullscreenSupported;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public COLORREF[] ColorTable = new COLORREF[16];
+        public COLORREF[] ColorTable ;
     }
     [StructLayout(LayoutKind.Sequential)]
     public struct COLORREF

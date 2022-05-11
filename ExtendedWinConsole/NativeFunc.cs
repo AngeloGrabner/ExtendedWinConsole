@@ -38,6 +38,11 @@ namespace ExtendedWinConsole
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern SafeFileHandle GetConsoleWindow();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleScreenBufferSize(SafeFileHandle hConsoleOutput, COORD dwSize);
+
+
     }
     public enum HandleType
     {

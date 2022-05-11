@@ -1,4 +1,6 @@
-﻿namespace ExtendedWinConsole
+﻿using System.Collections.Generic;
+using System;
+namespace ExtendedWinConsole
 {
     internal class Logger
     {

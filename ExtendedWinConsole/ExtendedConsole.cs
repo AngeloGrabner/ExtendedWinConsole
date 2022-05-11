@@ -1,15 +1,17 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using System.Drawing;
 using System.Diagnostics;
 
-namespace ExtendedWinConsole
+namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/windows/console/setconsolecursorinfo
 {
     public static class ExtendedConsole
     {
         private static Logger _logger = new();
         private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
-        private static SafeFileHandle _outputHandle = new SafeFileHandle(), _inputHandle = new SafeFileHandle(), _windowHandle = new SafeFileHandle();
+        private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
         private static int _width = 0, _height = 0;
@@ -46,7 +48,7 @@ namespace ExtendedWinConsole
             }
             //SetWindowSize(20, 20);
         }
-        public static bool SetWindowSize(int width, int height)
+        public static bool SetWindowSize(int width, int height, bool valueIsInCharaters = false) // value in character = true isnt working properly
         {
             CONSOLE_FONT_INFOEX? CFIX = new CONSOLE_FONT_INFOEX?();
             CFIX = GetFont();
@@ -59,11 +61,23 @@ namespace ExtendedWinConsole
             {
                 throw new ArgumentException("value must be greater 0");
             }
-            if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width * CFIX.Value.dwFontSize.x,height* CFIX.Value.dwFontSize.y, true))
+            if (valueIsInCharaters)
             {
-                _logger.addError("in ResizeWindow: in MoveWindow: " + Marshal.GetLastWin32Error());
-                //return false;
-                throw new ArgumentException(_logger.getLatest());
+                if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width * CFIX.Value.dwFontSize.x + 40, height * CFIX.Value.dwFontSize.y + 60, true))
+                {
+                    _logger.addError("in ResizeWindow: in MoveWindow: " + Marshal.GetLastWin32Error());
+                    return false;
+                    //throw new ArgumentException(_logger.getLatest());
+                }
+            }
+            else
+            {
+                if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width,  height, true))
+                {
+                    _logger.addError("in ResizeWindow: in MoveWindow: " + Marshal.GetLastWin32Error());
+                    return false;
+                    //throw new ArgumentException(_logger.getLatest());
+                }
             }
 
             return true;
@@ -86,10 +100,10 @@ namespace ExtendedWinConsole
         }
         public static void SetBufferSize(short sizeX, short sizeY) 
         {
-            if (!(sizeX < Console.LargestWindowWidth && sizeX > 0 && sizeY < Console.LargestWindowHeight && sizeY > 0))
+            if (sizeX <=  0 || sizeY <= 0)
             {
-                _logger.addError("size to big or to small");
-                throw new ArgumentException("size to big or to small");
+                _logger.addError("in SetBufferSize: size is to small");
+                throw new ArgumentException("size is to small");
             }
             _width = sizeX;
             _height = sizeY;
@@ -102,7 +116,7 @@ namespace ExtendedWinConsole
                 _outputBuffer[i].Attributes = 15;
                 _outputBuffer[i].UnicodeChar = ' ';
             }
-            //to be added SetConsoleScreenBufferSize 
+            NativeFunc.SetConsoleScreenBufferSize(_outputHandle, new COORD ((short)_width, (short)_height));
         }
         public static void SetBufferSize(COORD size)
         {
@@ -111,6 +125,7 @@ namespace ExtendedWinConsole
         public static void SetColor(int index, Color c)
         {
             CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
+            conscreenbufinex.cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
             if (!NativeFunc.GetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
             {
 
@@ -129,6 +144,7 @@ namespace ExtendedWinConsole
         public static CONSOLE_FONT_INFOEX? GetFont()
         {
             CONSOLE_FONT_INFOEX confoninfex = new CONSOLE_FONT_INFOEX();
+            confoninfex.cbSize = (uint)Marshal.SizeOf<CONSOLE_FONT_INFOEX>();
             if (!NativeFunc.GetCurrentConsoleFontEx(_outputHandle, false, ref confoninfex))
             {
                 _logger.addInfo("getFont failed: win32error"+Marshal.GetLastWin32Error().ToString());
@@ -139,6 +155,7 @@ namespace ExtendedWinConsole
         public static void SetFont(int width, int height, string fontStyle = " ")
         {
             CONSOLE_FONT_INFOEX confoninfex = new CONSOLE_FONT_INFOEX();
+            confoninfex.cbSize = (uint)Marshal.SizeOf<CONSOLE_FONT_INFOEX>();
             if (!NativeFunc.GetCurrentConsoleFontEx(_outputHandle, false, ref confoninfex))
             {
 
@@ -183,9 +200,14 @@ namespace ExtendedWinConsole
         {
 
         }
+        public static string[] GetLogs()
+        {
+            return _logger.getAll();
+        }
         private static int Convert2dTo1d(int x, int y)
         {
             return y * _width + x; 
         }
+        
     }
 }
