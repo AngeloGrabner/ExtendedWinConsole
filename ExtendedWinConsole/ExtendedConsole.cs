@@ -16,18 +16,14 @@ namespace ExtendedWinConsole
 #pragma warning disable 
         static ExtendedConsole()
         {
-            Console.WriteLine(Process.GetCurrentProcess().Handle.ToString());
-            IntPtr winhandle = Process.GetCurrentProcess().MainWindowHandle;
-            _windowHandle = new SafeFileHandle(winhandle, false);
+            //Console.WriteLine(NativeFunc.GetConsoleWindow());
+            _windowHandle = NativeFunc.GetConsoleWindow();
             if (_windowHandle.IsInvalid)
             {
                 _logger.addError("invalid windowHandle");
                 throw new Exception("invalid windowHandle id: " + _windowHandle.DangerousGetHandle());
             }
-            if (!NativeFunc.GetWindowRect(_windowHandle, ref _windowPos))
-            {
-                _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
-            }
+
 
             _outputHandle = NativeFunc.GetStdHandle(HandleType.output);
             _inputHandle = NativeFunc.GetStdHandle(HandleType.input);
@@ -42,13 +38,50 @@ namespace ExtendedWinConsole
                 throw new Exception("invalid intputHandle");
             }
             SetBufferSize((short)Console.WindowWidth, (short)Console.WindowHeight);
+
+            if (!NativeFunc.GetWindowRect(_windowHandle, ref _windowPos))
+            {
+                _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
+                throw new Exception("error while getting rect of window");
+            }
+            //ResizeWindow(20, 20);
+        }
+        public static bool ResizeWindow(int width, int height)
+        {
+            CONSOLE_FONT_INFOEX? CFIX = new CONSOLE_FONT_INFOEX?();
+            CFIX = GetFont();
+            if (CFIX == null)
+            { 
+                //return false;
+                throw new Exception("getting error");
+            }
+            if (width <= 0 || height <= 0)
+            {
+                throw new ArgumentException("value must be greater 0");
+            }
+            if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width * CFIX.Value.dwFontSize.x,height* CFIX.Value.dwFontSize.y, true))
+            {
+                _logger.addError("in ResizeWindow: in MoveWindow: " + Marshal.GetLastWin32Error());
+                //return false;
+                throw new ArgumentException(_logger.getLatest());
+            }
+
+            return true;
         }
         public static void MoveWindowPos(int ofsetX, int ofsetY) // win32 error: 1400 (ERROR_INVALID_WINDOW_HANDLE)
         {
-            if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left + ofsetX, _windowPos.Top + ofsetY, _windowPos.Right + ofsetX, _windowPos.Bottom + ofsetY, true))
+            try
             {
-                _logger.addError("in MoveWindowPos: in MoveWindow: " + Marshal.GetLastWin32Error());
-                throw new ArgumentException(_logger.getLatest());
+                if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left + ofsetX, _windowPos.Top + ofsetY, _windowPos.Right, _windowPos.Bottom, true))
+                {
+                    _logger.addError("in MoveWindowPos: in MoveWindow: " + Marshal.GetLastWin32Error());
+                    throw new ArgumentException(_logger.getLatest());
+                }
+            }
+            catch (SEHException e)
+            {
+                _logger.addError("in moveWindowPos: win32 error: "+ Marshal.GetLastWin32Error().ToString()+" throw: "+e);
+                throw new Exception("something with win32 and window position");
             }
         }
         public static void SetBufferSize(short sizeX, short sizeY) 
@@ -79,7 +112,7 @@ namespace ExtendedWinConsole
         {
            SetBufferSize(size.x, size.y);
         }
-        public static void setColor(int index, Color c)
+        public static void SetColor(int index, Color c)
         {
             CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
             if (!NativeFunc.GetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
@@ -97,7 +130,17 @@ namespace ExtendedWinConsole
                 throw new Exception("error while setting buffer info "+Marshal.GetLastWin32Error());
             }
         }
-        public static void setFont(int width, int height, string fontStyle = " ")
+        public static CONSOLE_FONT_INFOEX? GetFont()
+        {
+            CONSOLE_FONT_INFOEX confoninfex = new CONSOLE_FONT_INFOEX();
+            if (!NativeFunc.GetCurrentConsoleFontEx(_outputHandle, false, ref confoninfex))
+            {
+                _logger.addInfo("getFont failed: win32error"+Marshal.GetLastWin32Error().ToString());
+                return null;
+            }
+            return confoninfex;
+        }
+        public static void SetFont(int width, int height, string fontStyle = " ")
         {
             CONSOLE_FONT_INFOEX confoninfex = new CONSOLE_FONT_INFOEX();
             if (!NativeFunc.GetCurrentConsoleFontEx(_outputHandle, false, ref confoninfex))
@@ -118,7 +161,7 @@ namespace ExtendedWinConsole
             }
 
         }
-        public static void updateBuffer()
+        public static void UpdateBuffer()
         {
             if (!NativeFunc.WriteConsoleOutput(_outputHandle, _outputBuffer, new COORD((short)_width, (short)_height), new COORD(0, 0), ref _writtenRegion))
             {
@@ -144,7 +187,6 @@ namespace ExtendedWinConsole
         {
 
         }
-
         private static int Convert2dTo1d(int x, int y)
         {
             return y * _width + x; 
