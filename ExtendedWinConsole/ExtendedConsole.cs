@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Drawing;
 using System.Diagnostics;
 
-namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/windows/console/setconsolecursorinfo
+namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it)
 {
     public static class ExtendedConsole
     {
@@ -15,6 +15,7 @@ namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/win
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
         private static int _width = 0, _height = 0;
+        public static ushort baseColor = 15;
 #pragma warning disable 
         static ExtendedConsole()
         {
@@ -46,7 +47,27 @@ namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/win
                 _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
                 throw new Exception("error while getting rect of window");
             }
-            //SetWindowSize(20, 20);
+        }
+        public static void SetMaximumBufferSize(short width, short heith)
+        {
+
+            CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
+            conscreenbufinex.cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
+            if (!NativeFunc.GetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
+            {
+
+                throw new Exception("error while getting buffer info " + Marshal.GetLastWin32Error());
+            }
+            if (width <= 0 || heith <= 0)
+            {
+                throw new ArgumentException();
+            }
+            conscreenbufinex.dwSize = new COORD(width, heith);
+            if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
+            {
+
+                throw new Exception("error while setting buffer info " + Marshal.GetLastWin32Error());
+            }
         }
         public static bool SetCursorVisiblity(bool visible, int? cursorSize = null)
         {
@@ -210,14 +231,38 @@ namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/win
                 _logger.addInfo(_writtenRegion.ToString());
             }
         }
-        public static void WriteLine(string text, COORD? startPos = null)
+        public static void WriteLine(string text, ushort? color = null)
         {
-            for (int i = 0; i < text.Length && i < _outputBuffer.Length-1; i++)
+            COORD tempCursorPos = _cursor; 
+            if (color.HasValue)
             {
-                _outputBuffer[i].UnicodeChar = text[i];
-                _outputBuffer[i].Attributes = 15;
+                if (color.Value > 15)
+                {
+                    throw new ArgumentException("color must be beteewn 0 and 15");
+                }
+                for (int i = 0; i < text.Length && i < _outputBuffer.Length - 1; i++)
+                {
+                    if () // check for new line 
+                    {
+
+                    }
+                    _outputBuffer[i].UnicodeChar = text[i];
+                    _outputBuffer[i].Attributes = color.Value;
+                }
             }
-            // go to the new line
+            else
+            {
+                if (baseColor > 15)
+                {
+                    throw new Exception("base color must be beteewn 0 and 15");
+                }
+                for (int i = 0; i < text.Length && i < _outputBuffer.Length - 1; i++)
+                {
+                    _outputBuffer[i].UnicodeChar = text[i];
+                    _outputBuffer[i].Attributes = baseColor;
+                }
+            }
+            // update screen buffer
         }
         public static void Write(string text, COORD? startPos = null)
         {
