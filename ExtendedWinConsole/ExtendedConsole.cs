@@ -48,6 +48,33 @@ namespace ExtendedWinConsole // to be added https://docs.microsoft.com/en-us/win
             }
             //SetWindowSize(20, 20);
         }
+        public static bool SetCursorVisiblity(bool visible, int? cursorSize = null)
+        {
+            CONSOLE_CURSOR_INFO CCI = new CONSOLE_CURSOR_INFO();
+            if (!NativeFunc.GetConsoleCursorInfo(_outputHandle, out CCI))
+            {
+                _logger.addError("in SetCursorVisibility: error while getting: win32error: "+Marshal.GetLastWin32Error());
+                throw new Exception(_logger.getLatest());
+                //return false;
+            }
+            CCI.bVisible = visible;
+            if (cursorSize.HasValue)
+            {
+                if (cursorSize.Value <= 0 || cursorSize.Value > 100)
+                {
+                    throw new ArgumentException("cursorSize must be between 1 an 100");
+                }
+                CCI.dwSize = (uint)cursorSize.Value;
+            }
+            if (!NativeFunc.SetConsoleCursorInfo(_outputHandle, ref CCI))
+            {
+                _logger.addError("in SetCursorVisibility: error while setting: win32error: " + Marshal.GetLastWin32Error());
+                throw new Exception(_logger.getLatest());
+                //return false;
+            }
+            return true;
+
+        }
         public static bool SetWindowSize(int width, int height, bool valueIsInCharaters = false) // value in character = true isnt working properly
         {
             CONSOLE_FONT_INFOEX? CFIX = new CONSOLE_FONT_INFOEX?();

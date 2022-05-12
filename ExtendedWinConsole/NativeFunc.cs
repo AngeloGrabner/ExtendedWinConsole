@@ -42,7 +42,15 @@ namespace ExtendedWinConsole
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleScreenBufferSize(SafeFileHandle hConsoleOutput, COORD dwSize);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleCursorInfo(
+            SafeFileHandle hConsoleOutput,
+            [In] ref CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleCursorInfo(
+            SafeFileHandle hConsoleOutput,
+            out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
     }
     public enum HandleType
     {

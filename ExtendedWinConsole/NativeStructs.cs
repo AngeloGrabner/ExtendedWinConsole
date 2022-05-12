@@ -45,6 +45,13 @@ namespace ExtendedWinConsole
         [FieldOffset(2)] //2 bytes seems to work properly
         public UInt16 Attributes;
     }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CONSOLE_CURSOR_INFO
+    {
+        public uint dwSize;
+        public bool bVisible;
+    }
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct CONSOLE_FONT_INFOEX
     {
