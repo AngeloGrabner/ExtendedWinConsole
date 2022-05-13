@@ -6,8 +6,10 @@ class Testing
 {
     static void Main()
     {
-        ExtendedConsole.SetWindowSize(30, 10, true);
+        //ExtendedConsole.SetWindowSize(30, 10, true);
         ExtendedConsole.SetBufferSize(30, 10);
-        ExtendedConsole.WriteLine("something \n neue zeile");
+        //ExtendedConsole.WriteLine(" something \n neue zeile");
+        CHAR_INFO[30*10]
+        ExtendedConsole.SetBuffer()
     }
 }

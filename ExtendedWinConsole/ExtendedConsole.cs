@@ -14,6 +14,7 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
         private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
+        public static int BufferLength { get { return _outputBuffer.Length; } }
         private static int _width = 0, _height = 0;
         private static ushort _baseColor = 15;
         public static ushort BasColor
@@ -226,6 +227,17 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
             }
 
         }
+        public static void SetBuffer(CHAR_INFO[] buffer)
+        {
+            if (buffer.Length != _outputBuffer.Length)
+            {
+                throw new ArgumentException("buffer length is incorrect");
+            }
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                _outputBuffer[i] = buffer[i];
+            }
+        }
         public static void UpdateBuffer(bool flushBuffer = true)
         {
             if (!NativeFunc.WriteConsoleOutput(_outputHandle, _outputBuffer, new COORD((short)_width, (short)_height), new COORD(0, 0), ref _writtenRegion))
@@ -265,12 +277,12 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
 
                 for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
                 {
-                    if (text[j] == '\n')
-                    {
-                        tempCursorPos.y++;
-                        tempCursorPos.x = 0;
-                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    }
+                    //if (text[j] == '\n')
+                    //{
+                    //    tempCursorPos.y++;
+                    //    tempCursorPos.x = 0;
+                    //    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    //}
                     _outputBuffer[i].UnicodeChar = text[j];
                     _outputBuffer[i].Attributes = color.Value;
                 }
@@ -279,12 +291,12 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
             {
                 for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
                 {
-                    if (text[j] == '\n')
-                    {
-                        tempCursorPos.y++;
-                        tempCursorPos.x = 0;
-                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    }
+                    //if (text[j] == '\n')
+                    //{
+                    //    tempCursorPos.y++;
+                    //    tempCursorPos.x = 0;
+                    //    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    //}
                     _outputBuffer[i].UnicodeChar = text[j];
                     _outputBuffer[i].Attributes = _baseColor;
                 }
