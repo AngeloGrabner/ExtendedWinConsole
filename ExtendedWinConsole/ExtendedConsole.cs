@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using System.Drawing;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace ExtendedWinConsole // to be added: 
 {
@@ -22,6 +23,7 @@ namespace ExtendedWinConsole // to be added:
 
 
 #pragma warning disable 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static ExtendedConsole()
         {
             //Console.WriteLine(NativeFunc.GetConsoleWindow());
@@ -115,7 +117,7 @@ namespace ExtendedWinConsole // to be added:
             }
             if (valueIsInCharaters)
             {
-                if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width * CFIX.Value.dwFontSize.x + 40, height * CFIX.Value.dwFontSize.y + 60, true))
+                if (!NativeFunc.MoveWindow(_windowHandle, _windowPos.Left, _windowPos.Top, width * CFIX.Value.dwFontSize.x + 1, height * CFIX.Value.dwFontSize.y + 2, true))
                 {
                     _logger.addError("in ResizeWindow: in MoveWindow: " + Marshal.GetLastWin32Error());
                     return false;
@@ -162,13 +164,17 @@ namespace ExtendedWinConsole // to be added:
             _writtenRegion = new SMALL_RECT(0, 0, (short)_width, (short)_height);
             _outputBuffer = new CHAR_INFO[_width * _height];
 #pragma warning restore
+            
             for (int i = 0; i < _outputBuffer.Length; i++)
             {
                 _outputBuffer[i] = new CHAR_INFO();
                 _outputBuffer[i].Attributes = 15;
                 _outputBuffer[i].UnicodeChar = ' ';
             }
-            NativeFunc.SetConsoleScreenBufferSize(_outputHandle, new COORD ((short)_width, (short)_height));
+            if (!NativeFunc.SetConsoleScreenBufferSize(_outputHandle, new COORD ((short)_width, (short)_height)))
+            {
+                //throw new Exception(Marshal.GetLastWin32Error().ToString());
+            }
         }
         public static void SetBufferSize(COORD size)
         {
@@ -237,6 +243,7 @@ namespace ExtendedWinConsole // to be added:
                 _outputBuffer[i] = buffer[i];
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static void UpdateBuffer(bool flushBuffer = true)
         {
             if (!NativeFunc.WriteConsoleOutput(_outputHandle, _outputBuffer, new COORD((short)_width, (short)_height), new COORD(0, 0), ref _writtenRegion))
@@ -252,6 +259,8 @@ namespace ExtendedWinConsole // to be added:
         }
         public static void Clear(bool updateBuffer = true)
         {
+            _cursor.y = 0;
+            _cursor.x = 0;
             FlushBuffer();
             if (updateBuffer)
             {
@@ -278,12 +287,18 @@ namespace ExtendedWinConsole // to be added:
             _cursor.y++;
             _cursor.x = 0;
         }
+        public static void WriteLine()
+        {
+            _cursor.y++;
+            _cursor.x = 0;
+        }
         public static void Write(object obj, ushort? color = null)
         {
             string? text = obj.ToString();
             if (text != null)
                 Write(text, color);
         }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public static void Write(string text, ushort? color = null)
         {
             COORD tempCursorPos = _cursor;
@@ -330,6 +345,14 @@ namespace ExtendedWinConsole // to be added:
         {
 
         }
+        public static string ReadLine()
+        {
+            return null;
+        }
+        public static string ReadKey()
+        {
+            return null;
+        }
         public static string[] GetLogs()
         {
             return _logger.getAll();
@@ -359,7 +382,5 @@ namespace ExtendedWinConsole // to be added:
             }
             return y;
         }
-
-
     }
 }

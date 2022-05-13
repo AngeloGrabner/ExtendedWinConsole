@@ -53,12 +53,15 @@ namespace ExtendedWinConsole
             out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool ReadConsoleInput(
+        public static extern bool ReadConsoleInput( //https://docs.microsoft.com/en-us/windows/console/readconsoleinput
             SafeFileHandle hConsoleInput,
             [Out] INPUT_RECORD[] lpBuffer,
             uint nLength,
             out uint lpNumberOfEventsRead
         );
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern SafeFileHandle CreateEventExA(); // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createeventexa
+
     }
     public enum HandleType
     {
