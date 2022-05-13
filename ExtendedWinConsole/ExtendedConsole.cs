@@ -15,7 +15,11 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
         private static int _width = 0, _height = 0;
-        public static ushort baseColor = 15;
+        private static ushort _baseColor = 15;
+        public static ushort BasColor
+        { get { return _baseColor; } set { if (value < 16) { _baseColor = value; } } }
+
+
 #pragma warning disable 
         static ExtendedConsole()
         {
@@ -222,7 +226,7 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
             }
 
         }
-        public static void UpdateBuffer()
+        public static void UpdateBuffer(bool flushBuffer = true)
         {
             if (!NativeFunc.WriteConsoleOutput(_outputHandle, _outputBuffer, new COORD((short)_width, (short)_height), new COORD(0, 0), ref _writtenRegion))
             {
@@ -230,39 +234,62 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
                 _logger.addError($"lastWin32 error: {error}");
                 _logger.addInfo(_writtenRegion.ToString());
             }
+            if (flushBuffer)
+            {
+                FlushBuffer();
+            }
+        }
+        public static void Clear(bool updateBuffer = true)
+        {
+            FlushBuffer();
+            if (updateBuffer)
+            {
+                UpdateBuffer(false);
+            }
+        }
+        private static void FlushBuffer()
+        {
+            for (int i = 0; i < _outputBuffer.Length; i++)
+            {
+                _outputBuffer[i].UnicodeChar = ' ';
+                _outputBuffer[i].Attributes = _baseColor; 
+            }
         }
         public static void WriteLine(string text, ushort? color = null)
         {
-            COORD tempCursorPos = _cursor; 
+            COORD tempCursorPos = _cursor;  // if this breaks im done
+            int startPos = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+
             if (color.HasValue)
             {
-                if (color.Value > 15)
-                {
-                    throw new ArgumentException("color must be beteewn 0 and 15");
-                }
-                for (int i = 0; i < text.Length && i < _outputBuffer.Length - 1; i++)
-                {
-                    if () // check for new line 
-                    {
 
+                for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+                {
+                    if (text[j] == '\n')
+                    {
+                        tempCursorPos.y++;
+                        tempCursorPos.x = 0;
+                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
                     }
-                    _outputBuffer[i].UnicodeChar = text[i];
+                    _outputBuffer[i].UnicodeChar = text[j];
                     _outputBuffer[i].Attributes = color.Value;
                 }
             }
             else
             {
-                if (baseColor > 15)
+                for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
                 {
-                    throw new Exception("base color must be beteewn 0 and 15");
-                }
-                for (int i = 0; i < text.Length && i < _outputBuffer.Length - 1; i++)
-                {
-                    _outputBuffer[i].UnicodeChar = text[i];
-                    _outputBuffer[i].Attributes = baseColor;
+                    if (text[j] == '\n')
+                    {
+                        tempCursorPos.y++;
+                        tempCursorPos.x = 0;
+                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    }
+                    _outputBuffer[i].UnicodeChar = text[j];
+                    _outputBuffer[i].Attributes = _baseColor;
                 }
             }
-            // update screen buffer
+            UpdateBuffer(false);
         }
         public static void Write(string text, COORD? startPos = null)
         {
@@ -276,9 +303,20 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
         {
             return _logger.getAll();
         }
-        private static int Convert2dTo1d(int x, int y)
+        public static int Convert2dTo1d(int x, int y)
         {
-            return y * _width + x; 
+            return y * _width + x;
+        }
+        public static COORD Convert1dTo2d(short pos)
+        {
+            short y = 0, x = 0, pos1 = pos;
+            while (pos1 > _width)
+            {
+                pos1 -= (short)_width;
+                y++;
+            }
+            x = (short)(pos - (y * _width)); 
+            return new COORD(x, y);
         }
         
     }
