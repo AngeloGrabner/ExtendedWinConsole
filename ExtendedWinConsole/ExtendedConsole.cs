@@ -5,9 +5,9 @@ using Microsoft.Win32.SafeHandles;
 using System.Drawing;
 using System.Diagnostics;
 
-namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it)
+namespace ExtendedWinConsole // to be added: 
 {
-    public static class ExtendedConsole
+    public static class ExtendedConsole // it is not recommended to use the normal System.Console class in combination with this class
     {
         private static Logger _logger = new();
         private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
@@ -31,7 +31,6 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
                 _logger.addError("invalid windowHandle");
                 throw new Exception("invalid windowHandle id: " + _windowHandle.DangerousGetHandle());
             }
-
 
             _outputHandle = NativeFunc.GetStdHandle(HandleType.output);
             _inputHandle = NativeFunc.GetStdHandle(HandleType.input);
@@ -267,45 +266,65 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
                 _outputBuffer[i].Attributes = _baseColor; 
             }
         }
+        public static void WriteLine(object obj, ushort? color = null)
+        {
+            string? text = obj.ToString();
+            if (text != null)
+                WriteLine(text, color);
+        }
         public static void WriteLine(string text, ushort? color = null)
         {
-            COORD tempCursorPos = _cursor;  // if this breaks im done
+            Write(text, color);
+            _cursor.y++;
+            _cursor.x = 0;
+        }
+        public static void Write(object obj, ushort? color = null)
+        {
+            string? text = obj.ToString();
+            if (text != null)
+                Write(text, color);
+        }
+        public static void Write(string text, ushort? color = null)
+        {
+            COORD tempCursorPos = _cursor;
             int startPos = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
 
             if (color.HasValue)
             {
-
-                for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+                int i = startPos;
+                for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
                 {
-                    //if (text[j] == '\n')
-                    //{
-                    //    tempCursorPos.y++;
-                    //    tempCursorPos.x = 0;
-                    //    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    //}
+                    if (text[j] == '\n')
+                    {
+                        tempCursorPos.y++;
+                        tempCursorPos.x = 0;
+                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                        j++;
+                    }
                     _outputBuffer[i].UnicodeChar = text[j];
                     _outputBuffer[i].Attributes = color.Value;
                 }
+                _cursor = Convert1dTo2d((short)i);
             }
             else
             {
-                for (int i = startPos, j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+                int i = startPos;
+                for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
                 {
-                    //if (text[j] == '\n')
-                    //{
-                    //    tempCursorPos.y++;
-                    //    tempCursorPos.x = 0;
-                    //    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    //}
+                    if (text[j] == '\n')
+                    {
+                        tempCursorPos.y++;
+                        tempCursorPos.x = 0;
+                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                        j++;
+                    }
                     _outputBuffer[i].UnicodeChar = text[j];
                     _outputBuffer[i].Attributes = _baseColor;
                 }
+                _cursor = Convert1dTo2d((short)i);
             }
+            _cursor = tempCursorPos;
             UpdateBuffer(false);
-        }
-        public static void Write(string text, COORD? startPos = null)
-        {
-
         }
         public static void WriteRect(string text, SMALL_RECT textArea)
         {
@@ -330,6 +349,17 @@ namespace ExtendedWinConsole // to be added flush _ouputbuffer[] (and display it
             x = (short)(pos - (y * _width)); 
             return new COORD(x, y);
         }
-        
+        public static short Convert1dToY(short pos)
+        {
+            short y = 0;
+            while (pos > _width)
+            {
+                pos -= (short)_width;
+                y++;
+            }
+            return y;
+        }
+
+
     }
 }

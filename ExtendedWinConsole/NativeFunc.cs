@@ -51,6 +51,14 @@ namespace ExtendedWinConsole
         public static extern bool GetConsoleCursorInfo(
             SafeFileHandle hConsoleOutput,
             out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern bool ReadConsoleInput(
+            SafeFileHandle hConsoleInput,
+            [Out] INPUT_RECORD[] lpBuffer,
+            uint nLength,
+            out uint lpNumberOfEventsRead
+        );
     }
     public enum HandleType
     {
