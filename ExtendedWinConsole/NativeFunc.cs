@@ -59,14 +59,9 @@ namespace ExtendedWinConsole
             uint nLength,
             out uint lpNumberOfEventsRead
         );
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern SafeFileHandle CreateEventExA(); // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createeventexa
+        //[DllImport("kernel32.dll", SetLastError = true)]
+        //public static extern SafeFileHandle CreateEventExA(); // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createeventexa
 
     }
-    public enum HandleType
-    {
-        error = -12,
-        output = -11,
-        input = -10
-    }
+
 }

@@ -251,6 +251,7 @@ namespace ExtendedWinConsole // to be added:
                 string error = Marshal.GetLastWin32Error().ToString();
                 _logger.addError($"lastWin32 error: {error}");
                 _logger.addInfo(_writtenRegion.ToString());
+                throw new Exception(_logger.getLatest());
             }
             if (flushBuffer)
             {
@@ -364,7 +365,22 @@ namespace ExtendedWinConsole // to be added:
         }
         public static string ReadLine()
         {
-            return null;
+            INPUT_RECORD[] inRecord = new INPUT_RECORD[128];
+            uint inputsRead;
+            if (!NativeFunc.ReadConsoleInput(_inputHandle, inRecord,(uint) inRecord.Length, out inputsRead))
+            {
+                string error = Marshal.GetLastWin32Error().ToString();
+                _logger.addError($"in ReadLine: lastWin32 error: {error}");
+                throw new Exception(_logger.getLatest());
+            }
+            foreach (INPUT_RECORD record in inRecord)
+            {
+                switch (record.EventType)
+                {
+                    case 
+                }
+            }
+            return " ";
         }
         public static string ReadKey()
         {
