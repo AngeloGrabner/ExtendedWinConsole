@@ -359,7 +359,7 @@ namespace ExtendedWinConsole // to be added:
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
-        public static void WriteRect(string text, SMALL_RECT textArea)
+        public static void WriteSubWindow(SubWindow sw)
         {
 
         }

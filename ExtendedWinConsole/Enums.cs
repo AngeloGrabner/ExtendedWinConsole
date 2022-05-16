@@ -2,6 +2,16 @@
 
 namespace ExtendedWinConsole
 {
+    public enum BorderType
+    {
+        TopLeft = 0,
+        TopRight = 1,
+        BottomLeft = 2,
+        BottomRight = 3,
+        VerticalLine = 4,
+        HoriziontalLine = 5
+        // to be added intersecting borders
+    }
     [Flags]
     public enum ControlKeyState
     {
