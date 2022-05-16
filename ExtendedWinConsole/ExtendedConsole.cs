@@ -373,11 +373,29 @@ namespace ExtendedWinConsole // to be added:
                 _logger.addError($"in ReadLine: lastWin32 error: {error}");
                 throw new Exception(_logger.getLatest());
             }
+            //to be added: input handeling
             foreach (INPUT_RECORD record in inRecord)
             {
                 switch (record.EventType)
                 {
-                    case 
+                    case (ushort)InputEventType.MOUSE_EVENT:
+
+                        break;
+                    case (ushort)InputEventType.MENU_EVENT:
+
+                        break;
+                    case (ushort)InputEventType.FOCUS_EVENT:
+
+                        break;
+                    case (ushort)InputEventType.WINDOW_BUFFER_SIZE_EVENT:
+
+                        break;
+                    case (ushort)InputEventType.KEY_EVENT:
+
+                        break;
+                    default:
+
+                        break;
                 }
             }
             return " ";
