@@ -275,6 +275,16 @@ namespace ExtendedWinConsole // to be added:
                 _outputBuffer[i].Attributes = _baseColor; 
             }
         }
+        public static void WriteLine(object obj)
+        {
+            WriteLine(obj.ToString());
+        }
+        public static void WriteLine(string text)
+        {
+            Write(text);
+            _cursor.y++;
+            _cursor.x = 0;
+        }
         public static void WriteLine(object obj, ushort? color = null)
         {
             string? text = obj.ToString();
@@ -299,45 +309,52 @@ namespace ExtendedWinConsole // to be added:
                 Write(text, color);
         }
         [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
-        public static void Write(string text, ushort? color = null)
+        public static void Write(string text, ushort color)
+        {
+            if (color > 15)
+            {
+                color = 15;
+            }
+            COORD tempCursorPos = _cursor;
+            int i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+            for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+            {
+                if (text[j] == '\n')
+                {
+                    tempCursorPos.y++;
+                    tempCursorPos.x = 0;
+                    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    j++;
+                }
+                _outputBuffer[i].UnicodeChar = text[j];
+                _outputBuffer[i].Attributes = color;
+            }
+            //_cursor = Convert1dTo2d((short)i);
+            _cursor = tempCursorPos;
+            UpdateBuffer(false);
+        }
+        public static void Wrtie(object obj)
+        {
+            Write(obj.ToString());
+        }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
+        public static void Write(string text)
         {
             COORD tempCursorPos = _cursor;
-            int startPos = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-
-            if (color.HasValue)
+            int i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+            for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
             {
-                int i = startPos;
-                for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+                if (text[j] == '\n')
                 {
-                    if (text[j] == '\n')
-                    {
-                        tempCursorPos.y++;
-                        tempCursorPos.x = 0;
-                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                        j++;
-                    }
-                    _outputBuffer[i].UnicodeChar = text[j];
-                    _outputBuffer[i].Attributes = color.Value;
+                    tempCursorPos.y++;
+                    tempCursorPos.x = 0;
+                    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    j++;
                 }
-                _cursor = Convert1dTo2d((short)i);
+                _outputBuffer[i].UnicodeChar = text[j];
+                _outputBuffer[i].Attributes = _baseColor;
             }
-            else
-            {
-                int i = startPos;
-                for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
-                {
-                    if (text[j] == '\n')
-                    {
-                        tempCursorPos.y++;
-                        tempCursorPos.x = 0;
-                        i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                        j++;
-                    }
-                    _outputBuffer[i].UnicodeChar = text[j];
-                    _outputBuffer[i].Attributes = _baseColor;
-                }
-                _cursor = Convert1dTo2d((short)i);
-            }
+            //_cursor = Convert1dTo2d((short)i);
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
@@ -363,14 +380,13 @@ namespace ExtendedWinConsole // to be added:
         }
         public static COORD Convert1dTo2d(short pos)
         {
-            short y = 0, x = 0, pos1 = pos;
+            short y = 0, pos1 = pos;
             while (pos1 > _width)
             {
                 pos1 -= (short)_width;
                 y++;
             }
-            x = (short)(pos - (y * _width)); 
-            return new COORD(x, y);
+            return new COORD((short)(pos - (y * _width)), y);
         }
         public static short Convert1dToY(short pos)
         {
