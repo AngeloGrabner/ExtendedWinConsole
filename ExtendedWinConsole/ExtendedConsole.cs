@@ -368,11 +368,11 @@ namespace ExtendedWinConsole // to be added:
         public static void WriteSubWindow(SubWindow sw)
         {
             CHAR_INFO[] buffer = sw.buffer;
-            for (int x = 0; x < ; x++)
+            for (int x = sw.rect.Left; x < sw.rect.Right+sw.rect.Left; x++)
             {
-                for (int y = 0; y < ; y++)
+                for (int y = sw.rect.Top; y < sw.rect.Bottom+sw.rect.Top; y++)
                 {
-
+                    _outputBuffer[_utility.Convert2dTo1d(x, y)] = buffer[sw.Utility.Convert2dTo1d(x - sw.rect.Left, y - sw.rect.Top)];
                 }
             }
         }

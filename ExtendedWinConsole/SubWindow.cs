@@ -1,18 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace ExtendedWinConsole
 {
-    public class SubWindow // no optimaziations in this class, it was not made for super high performence anyways
+    public class SubWindow 
     {
         private char[] _borderTiles = new char[6] { '╔', '╗', '╚', '╝', '║', '═' };
         private ushort _baseColor = 15;
         private COORD _cursor = new COORD(0,0);
         private SMALL_RECT _rect;
         private Utility _utility;
+        internal Utility Utility
+        {
+            get { return _utility; }
+        }
         public SMALL_RECT rect
         {
             get { return _rect; }
@@ -66,6 +67,7 @@ namespace ExtendedWinConsole
         {
             Write(obj.ToString(), color);
         }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public void Write(string text, ushort color)
         {
             if (color > 15)
@@ -93,6 +95,7 @@ namespace ExtendedWinConsole
         {
             Write(obj.ToString());
         }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public void Write(string text)
         {
             COORD tempCursorPos = _cursor;
