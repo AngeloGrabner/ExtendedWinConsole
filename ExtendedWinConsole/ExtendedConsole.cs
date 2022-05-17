@@ -11,6 +11,7 @@ namespace ExtendedWinConsole // to be added:
     public static class ExtendedConsole // it is not recommended to use the normal System.Console class in combination with this class
     {
         private static Logger _logger = new();
+        private static Utility _utility;
         private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
         private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
         private static COORD _cursor = new(0,0);
@@ -26,6 +27,7 @@ namespace ExtendedWinConsole // to be added:
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static ExtendedConsole()
         {
+            _utility = new(_width);
             //Console.WriteLine(NativeFunc.GetConsoleWindow());
             _windowHandle = NativeFunc.GetConsoleWindow();
             if (_windowHandle.IsInvalid)
@@ -164,7 +166,9 @@ namespace ExtendedWinConsole // to be added:
             _writtenRegion = new SMALL_RECT(0, 0, (short)_width, (short)_height);
             _outputBuffer = new CHAR_INFO[_width * _height];
 #pragma warning restore
-            
+
+            _utility = new(_width);
+
             for (int i = 0; i < _outputBuffer.Length; i++)
             {
                 _outputBuffer[i] = new CHAR_INFO();
@@ -317,16 +321,17 @@ namespace ExtendedWinConsole // to be added:
                 color = 15;
             }
             COORD tempCursorPos = _cursor;
-            int i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+            int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
             for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
             {
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
                     tempCursorPos.x = 0;
-                    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
                     j++;
                 }
+                tempCursorPos.x++;
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = color;
             }
@@ -342,16 +347,17 @@ namespace ExtendedWinConsole // to be added:
         public static void Write(string text)
         {
             COORD tempCursorPos = _cursor;
-            int i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+            int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
             for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
             {
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
                     tempCursorPos.x = 0;
-                    i = Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
                     j++;
                 }
+                tempCursorPos.x++;
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = _baseColor;
             }
@@ -361,7 +367,14 @@ namespace ExtendedWinConsole // to be added:
         }
         public static void WriteSubWindow(SubWindow sw)
         {
+            CHAR_INFO[] buffer = sw.buffer;
+            for (int x = 0; x < ; x++)
+            {
+                for (int y = 0; y < ; y++)
+                {
 
+                }
+            }
         }
         public static string ReadLine()
         {
@@ -407,30 +420,6 @@ namespace ExtendedWinConsole // to be added:
         public static string[] GetLogs()
         {
             return _logger.getAll();
-        }
-        public static int Convert2dTo1d(int x, int y)
-        {
-            return y * _width + x;
-        }
-        public static COORD Convert1dTo2d(short pos)
-        {
-            short y = 0, pos1 = pos;
-            while (pos1 > _width)
-            {
-                pos1 -= (short)_width;
-                y++;
-            }
-            return new COORD((short)(pos - (y * _width)), y);
-        }
-        public static short Convert1dToY(short pos)
-        {
-            short y = 0;
-            while (pos > _width)
-            {
-                pos -= (short)_width;
-                y++;
-            }
-            return y;
         }
     }
 }

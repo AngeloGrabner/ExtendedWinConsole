@@ -2,7 +2,7 @@
 
 namespace ExtendedWinConsole
 {
-    public enum BorderType
+    public enum BorderType : int
     {
         TopLeft = 0,
         TopRight = 1,

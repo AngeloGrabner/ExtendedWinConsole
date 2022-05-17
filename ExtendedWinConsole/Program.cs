@@ -6,17 +6,10 @@ class Testing
 {
     static void Main()
     {
-        exTest();
-        exTest();
-        normal();
-        normal();
-        //ExtendedConsole.SetFont(8,16);
-        //Thread.Sleep(1000);
-        //ExtendedConsole.SetMaximumBufferSize(20, 20);
-        //ExtendedConsole.SetWindowSize(22, 22, true);
-        //Thread.Sleep(1000);
-        //ExtendedConsole.SetBufferSize(20, 20);
-        //ExtendedConsole.UpdateBuffer(false);
+        ExtendedConsole.SetBufferSize(50, 3);
+        ExtendedConsole.WriteLine("first line");
+        ExtendedConsole.Write("second line");
+        ExtendedConsole.Write(" still 2nd line",2);
         Console.ReadLine();
     }
 
