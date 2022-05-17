@@ -31,6 +31,7 @@ namespace ExtendedWinConsole
             _buffer = new CHAR_INFO[(x - width) * (y - height)];
             _utility = new(width);
             FillBuffer();
+            DrawBorder();
         }
         public SubWindow(SMALL_RECT rect)
         {
@@ -38,6 +39,7 @@ namespace ExtendedWinConsole
             _buffer = new CHAR_INFO[(_rect.Left - _rect.Right) * (_rect.Top - _rect.Bottom)];
             _utility = new(rect.Right);
             FillBuffer();
+            DrawBorder();
         }
         public void WriteLine(string text)
         {
@@ -161,6 +163,7 @@ namespace ExtendedWinConsole
         public void Clear()
         {
             FillBuffer();
+            DrawBorder();
         }
         public void Resize(short newX, short newY,short newWidth, short newHeight)
         {
@@ -168,6 +171,7 @@ namespace ExtendedWinConsole
             _buffer = new CHAR_INFO[(_rect.Left - _rect.Right) * (_rect.Top - _rect.Bottom)];
             _utility = new(newWidth);
             FillBuffer();
+            DrawBorder();
         }
         public void Resize(short newWidth, short newHeight)
         {

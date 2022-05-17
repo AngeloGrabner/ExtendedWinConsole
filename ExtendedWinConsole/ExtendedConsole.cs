@@ -6,10 +6,12 @@ using System.Drawing;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace ExtendedWinConsole // to be added: 
+namespace ExtendedWinConsole 
 {
     public static class ExtendedConsole // it is not recommended to use the normal System.Console class in combination with this class
     {
+        // bugs: Write/WriteLine bug: out of bounce when text is to large
+        // bugs: WriteSubWindow bug: out of bounce  
         private static Logger _logger = new();
         private static Utility _utility;
         private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
@@ -367,12 +369,21 @@ namespace ExtendedWinConsole // to be added:
         }
         public static void WriteSubWindow(SubWindow sw)
         {
-            CHAR_INFO[] buffer = sw.buffer;
-            for (int x = sw.rect.Left; x < sw.rect.Right+sw.rect.Left; x++)
+            for (int y = 0; y < sw.rect.Bottom; y++)
             {
-                for (int y = sw.rect.Top; y < sw.rect.Bottom+sw.rect.Top; y++)
+                for (int x = 0; x < sw.rect.Right; x++)
                 {
-                    _outputBuffer[_utility.Convert2dTo1d(x, y)] = buffer[sw.Utility.Convert2dTo1d(x - sw.rect.Left, y - sw.rect.Top)];
+                    
+                    try
+                    { 
+                        _outputBuffer[_utility.Convert2dTo1d(x, y)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // out of bounce
+                    }
+                    catch
+                    {
+                        _logger.addInfo($"x:{x}, y:{y}");
+                        Console.WriteLine(_logger.getLatest());
+                    }
+                    
                 }
             }
         }
