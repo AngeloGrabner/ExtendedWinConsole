@@ -57,6 +57,7 @@ namespace ExtendedWinConsole
                 _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
                 throw new Exception("error while getting rect of window");
             }
+            SetCursorVisiblity(false);
         }
         public static void SetMaximumBufferSize(short width, short heith)
         {
@@ -369,21 +370,11 @@ namespace ExtendedWinConsole
         }
         public static void WriteSubWindow(SubWindow sw)
         {
-            for (int y = 0; y < sw.rect.Bottom; y++)
+            for (int y = 0; y < sw.rect.Bottom && sw.rect.Top+sw.rect.Bottom < _outputBuffer.Length; y++)
             {
-                for (int x = 0; x < sw.rect.Right; x++)
+                for (int x = 0; x < sw.rect.Right && sw.rect.Left + sw.rect.Right < _outputBuffer.Length; x++)
                 {
-                    
-                    try
-                    { 
-                        _outputBuffer[_utility.Convert2dTo1d(x, y)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // out of bounce
-                    }
-                    catch
-                    {
-                        _logger.addInfo($"x:{x}, y:{y}");
-                        Console.WriteLine(_logger.getLatest());
-                    }
-                    
+                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // out of bounce
                 }
             }
         }

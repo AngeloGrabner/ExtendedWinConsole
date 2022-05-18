@@ -7,7 +7,8 @@ namespace ExtendedWinConsole
     {
         private char[] _borderTiles = new char[6] { '╔', '╗', '╚', '╝', '║', '═' };
         private ushort _baseColor = 15;
-        private COORD _cursor = new COORD(0,0);
+        private const short _startingIndex = 1;
+        private COORD _cursor = new COORD(_startingIndex,_startingIndex);
         private SMALL_RECT _rect;
         private Utility _utility;
         internal Utility Utility
@@ -28,7 +29,7 @@ namespace ExtendedWinConsole
         public SubWindow(short x, short y, short width, short height)
         {
             _rect = new SMALL_RECT(x, y, width, height);
-            _buffer = new CHAR_INFO[(x - width) * (y - height)];
+            _buffer = new CHAR_INFO[(width) * (height)];
             _utility = new(width);
             FillBuffer();
             DrawBorder();
@@ -44,25 +45,25 @@ namespace ExtendedWinConsole
         public void WriteLine(string text)
         {
             Write(text);
-            _cursor.x = 0;
+            _cursor.x = _startingIndex;
             _cursor.y++;
         }
         public void WriteLine(object obj)
         {
             Write(obj);
-            _cursor.x = 0;
+            _cursor.x = _startingIndex;
             _cursor.y++;
         }
         public void WriteLine(string text, ushort color)
         {
             Write(text, color);
-            _cursor.x = 0;
+            _cursor.x = _startingIndex;
             _cursor.y++;
         }
         public void WriteLine(object obj, ushort color)
         {
             Write(obj, color);
-            _cursor.x = 0;
+            _cursor.x = _startingIndex;
             _cursor.y++;
         }
         public void Write(object obj, ushort color)
@@ -78,16 +79,24 @@ namespace ExtendedWinConsole
             }
             COORD tempCursorPos = _cursor;
             int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-            for (int j = 0; j < text.Length && i < _buffer.Length; i++, j++)
+            int end = _buffer.Length-(rect.Right+1);
+            for (int j = 0; j < text.Length && i < end; i++, j++)
             {
+                if (++tempCursorPos.x == rect.Right - 1)
+                {
+                    tempCursorPos.x = _startingIndex;
+                    tempCursorPos.y++;
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                }
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
-                    tempCursorPos.x = 0;
+                    tempCursorPos.x = _startingIndex;
                     i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    j++;
+                    if (++j == text.Length) 
+                        break;
                 }
-                tempCursorPos.x++;
+
                 _buffer[i].UnicodeChar = text[j];
                 _buffer[i].Attributes = color;
             }
@@ -102,18 +111,27 @@ namespace ExtendedWinConsole
         {
             COORD tempCursorPos = _cursor;
             int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-            for (int j = 0; j < text.Length && i < _buffer.Length; i++, j++)
+            int end = _buffer.Length - (rect.Right+1);
+            for (int j = 0; j < text.Length && i < end; i++, j++)
             {
+                if (++tempCursorPos.x == rect.Right)
+                {
+                    tempCursorPos.x = _startingIndex;
+                    tempCursorPos.y++;
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                }
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
-                    tempCursorPos.x = 0;
+                    tempCursorPos.x = _startingIndex;
                     i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    j++;
+                    if (++j == text.Length)
+                        break;
                 }
-                tempCursorPos.x++;
+
                 _buffer[i].UnicodeChar = text[j];
                 _buffer[i].Attributes = _baseColor;
+
             }
             _cursor = tempCursorPos;
         }
@@ -132,17 +150,17 @@ namespace ExtendedWinConsole
                 _buffer[i].UnicodeChar = _borderTiles[(int)BorderType.HoriziontalLine];
                 _buffer[i].Attributes = color;
             }
-            for (int i = _utility.Convert2dTo1d(1, _rect.Bottom); i < _utility.Convert2dTo1d(_rect.Right, _rect.Bottom)-1; i++) // bottom line
+            for (int i = _rect.Right * _rect.Bottom -_rect.Right; i < _buffer.Length; i++) // bottom line
             {
                 _buffer[i].UnicodeChar = _borderTiles[(int)BorderType.HoriziontalLine];
                 _buffer[i].Attributes = color;
             }
-            for (int i = _utility.Convert2dTo1d(0, 1); i < _utility.Convert2dTo1d(0, _rect.Bottom-1); i+= _utility.Convert2dTo1d(0,1)) // left line
+            for (int i = rect.Right; i < _rect.Right*_rect.Bottom-1; i+= _rect.Right) // left line
             {
                 _buffer[i].UnicodeChar = _borderTiles[(int)BorderType.VerticalLine];
                 _buffer[i].Attributes = color;
             }
-            for (int i = _utility.Convert2dTo1d(_rect.Right, 1); i < _utility.Convert2dTo1d(_rect.Right-1, _rect.Bottom); i+= _utility.Convert2dTo1d(0, 1)) // right line
+            for (int i = _rect.Right*2-1; i < _buffer.Length; i+= _rect.Right) // right line
             {
                 _buffer[i].UnicodeChar = _borderTiles[(int)BorderType.VerticalLine];
                 _buffer[i].Attributes = color;
@@ -151,11 +169,11 @@ namespace ExtendedWinConsole
             _buffer[0].UnicodeChar = _borderTiles[(int)BorderType.TopLeft];
             _buffer[0].Attributes = color;
 
-            _buffer[_rect.Right].UnicodeChar = _borderTiles[(int)BorderType.TopRight];
-            _buffer[_rect.Right].Attributes = color;
+            _buffer[_rect.Right-1].UnicodeChar = _borderTiles[(int)BorderType.TopRight];
+            _buffer[_rect.Right-1].Attributes = color;
 
-            _buffer[_utility.Convert2dTo1d(0, _rect.Bottom)].UnicodeChar = _borderTiles[(int)BorderType.BottomRight];
-            _buffer[_utility.Convert2dTo1d(0, _rect.Bottom)].Attributes = color;
+            _buffer[_utility.Convert2dTo1d(0, _rect.Bottom-1)].UnicodeChar = _borderTiles[(int)BorderType.BottomLeft]; // -1 could be wrong
+            _buffer[_utility.Convert2dTo1d(0, _rect.Bottom-1)].Attributes = color;
 
             _buffer[(_rect.Bottom * _rect.Right) - 1].UnicodeChar = _borderTiles[(int)BorderType.BottomRight];
             _buffer[(_rect.Bottom * _rect.Right) - 1].Attributes = color;
@@ -168,7 +186,7 @@ namespace ExtendedWinConsole
         public void Resize(short newX, short newY,short newWidth, short newHeight)
         {
             _rect = new SMALL_RECT(newX,newY,newWidth,newHeight);
-            _buffer = new CHAR_INFO[(_rect.Left - _rect.Right) * (_rect.Top - _rect.Bottom)];
+            _buffer = new CHAR_INFO[(_rect.Right) * (_rect.Bottom)];
             _utility = new(newWidth);
             FillBuffer();
             DrawBorder();
