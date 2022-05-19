@@ -6,20 +6,18 @@ class Testing
 {
     static void Main()
     {
-        ExtendedConsole.SetBufferSize(120,20);
-        //ExtendedConsole.WriteLine("12345678901234567890sgfjhiahgiasogpiahgofejfjf");
-        //ExtendedConsole.Write("somthing");
-        SubWindow sw = new(10, 2, 12, 6);
+        //ExtendedConsole.SetBufferSize(30,20);
+        //ExtendedConsole.SetWindowSize(30,20, true);
+        ExtendedConsole.Write("somthing\n long as text");
+        SubWindow sw = new(50, 5, 14, 7);
         sw.WriteLine("somthing");
         sw.Write("line two\n", 4);
-        sw.Write("0123456789012345678901234");
-        for (int i = 0; i < 100; i++)
-        {
+        sw.Write("01234567890123456789012345");
             ExtendedConsole.WriteSubWindow(sw);
             ExtendedConsole.UpdateBuffer();
-            sw.Move(1,0);
-            Thread.Sleep(1000);
-        }
+            //sw.Move(1,1);
+            //Thread.Sleep(500);
+
         Console.ReadLine();
     }
 

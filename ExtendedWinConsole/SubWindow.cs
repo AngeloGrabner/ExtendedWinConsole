@@ -106,34 +106,9 @@ namespace ExtendedWinConsole
         {
             Write(obj.ToString());
         }
-        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public void Write(string text)
         {
-            COORD tempCursorPos = _cursor;
-            int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-            int end = _buffer.Length - (rect.Right+1);
-            for (int j = 0; j < text.Length && i < end; i++, j++)
-            {
-                if (++tempCursorPos.x == rect.Right)
-                {
-                    tempCursorPos.x = _startingIndex;
-                    tempCursorPos.y++;
-                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                }
-                if (text[j] == '\n')
-                {
-                    tempCursorPos.y++;
-                    tempCursorPos.x = _startingIndex;
-                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    if (++j == text.Length)
-                        break;
-                }
-
-                _buffer[i].UnicodeChar = text[j];
-                _buffer[i].Attributes = _baseColor;
-
-            }
-            _cursor = tempCursorPos;
+            Write(text, _baseColor);
         }
         public void DrawBorder()
         {
@@ -180,6 +155,7 @@ namespace ExtendedWinConsole
         }
         public void Clear()
         {
+            _cursor = new(1, 1);
             FillBuffer();
             DrawBorder();
         }
@@ -197,10 +173,7 @@ namespace ExtendedWinConsole
         }
         public void Move(short Xoffset, short Yoffset)
         {
-            _rect.Right += Xoffset;
             _rect.Left += Xoffset;
-
-            _rect.Bottom += Yoffset;
             _rect.Top += Yoffset;
         }
         private void FillBuffer(char defaultChar = ' ', ushort defaultColor = 15) 

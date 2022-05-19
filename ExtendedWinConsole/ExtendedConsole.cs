@@ -21,6 +21,7 @@ namespace ExtendedWinConsole
         public static int BufferLength { get { return _outputBuffer.Length; } }
         private static int _width = 0, _height = 0;
         private static ushort _baseColor = 15;
+        private static short _startingIndex = 0;
         public static ushort BasColor
         { get { return _baseColor; } set { if (value < 16) { _baseColor = value; } } }
 
@@ -267,19 +268,19 @@ namespace ExtendedWinConsole
         }
         public static void Clear(bool updateBuffer = true)
         {
-            _cursor.y = 0;
-            _cursor.x = 0;
             FlushBuffer();
             if (updateBuffer)
             {
                 UpdateBuffer(false);
             }
         }
-        private static void FlushBuffer()
+        private static void FlushBuffer(char baseChar = ' ')
         {
+            _cursor.y = 0;
+            _cursor.x = 0;
             for (int i = 0; i < _outputBuffer.Length; i++)
             {
-                _outputBuffer[i].UnicodeChar = ' ';
+                _outputBuffer[i].UnicodeChar = baseChar;
                 _outputBuffer[i].Attributes = _baseColor; 
             }
         }
@@ -325,20 +326,27 @@ namespace ExtendedWinConsole
             }
             COORD tempCursorPos = _cursor;
             int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-            for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
+            int end = _outputBuffer.Length - (_width + 1);
+            for (int j = 0; j < text.Length && i < end; i++, j++)
             {
+                if (++tempCursorPos.x == _width - 1)
+                {
+                    tempCursorPos.x = _startingIndex;
+                    tempCursorPos.y++;
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                }
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
-                    tempCursorPos.x = 0;
+                    tempCursorPos.x = _startingIndex;
                     i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    j++;
+                    if (++j == text.Length)
+                        break;
                 }
-                tempCursorPos.x++;
+
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = color;
             }
-            //_cursor = Convert1dTo2d((short)i);
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
@@ -346,7 +354,6 @@ namespace ExtendedWinConsole
         {
             Write(obj.ToString());
         }
-        [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public static void Write(string text)
         {
             COORD tempCursorPos = _cursor;
@@ -370,54 +377,26 @@ namespace ExtendedWinConsole
         }
         public static void WriteSubWindow(SubWindow sw)
         {
-            for (int y = 0; y < sw.rect.Bottom && y + sw.rect.Top < _width; y++)
+            for (int y = 0; y < sw.rect.Bottom && y + sw.rect.Top < _height; y++)
             {
-                for (int x = 0; x < sw.rect.Right && x + sw.rect.Left < _height; x++)
+                for (int x = 0; x < sw.rect.Right && x + sw.rect.Left < _width; x++)
                 {
-                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // some bugs with the offset
+                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; 
                 }
             }
         }
-        public static string ReadLine()
+        public static void ClearSubWindow(SubWindow sw)
         {
-            INPUT_RECORD[] inRecord = new INPUT_RECORD[128];
-            uint inputsRead;
-            if (!NativeFunc.ReadConsoleInput(_inputHandle, inRecord,(uint) inRecord.Length, out inputsRead))
+            CHAR_INFO ci = new();
+            ci.Attributes = _baseColor;
+            ci.UnicodeChar = ' ';
+            for (int y = 0; y < sw.rect.Bottom && y + sw.rect.Top < _height; y++)
             {
-                string error = Marshal.GetLastWin32Error().ToString();
-                _logger.addError($"in ReadLine: lastWin32 error: {error}");
-                throw new Exception(_logger.getLatest());
-            }
-            //to be added: input handeling
-            foreach (INPUT_RECORD record in inRecord)
-            {
-                switch (record.EventType)
+                for (int x = 0; x < sw.rect.Right && x + sw.rect.Left < _width; x++)
                 {
-                    case (ushort)InputEventType.MOUSE_EVENT:
-
-                        break;
-                    case (ushort)InputEventType.MENU_EVENT:
-
-                        break;
-                    case (ushort)InputEventType.FOCUS_EVENT:
-
-                        break;
-                    case (ushort)InputEventType.WINDOW_BUFFER_SIZE_EVENT:
-
-                        break;
-                    case (ushort)InputEventType.KEY_EVENT:
-
-                        break;
-                    default:
-
-                        break;
+                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = ci;
                 }
             }
-            return " ";
-        }
-        public static string ReadKey()
-        {
-            return null;
         }
         public static string[] GetLogs()
         {
