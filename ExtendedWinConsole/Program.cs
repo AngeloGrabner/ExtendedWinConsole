@@ -8,15 +8,19 @@ class Testing
     {
         //ExtendedConsole.SetBufferSize(30,20);
         //ExtendedConsole.SetWindowSize(30,20, true);
+        ExtendedConsole.SetFont(16, 32);
         ExtendedConsole.Write("somthing\n long as text");
         SubWindow sw = new(50, 5, 14, 7);
         sw.WriteLine("somthing");
         sw.Write("line two\n", 4);
         sw.Write("01234567890123456789012345");
+        for (int i = 0; i < 10; i++)
+        {
             ExtendedConsole.WriteSubWindow(sw);
             ExtendedConsole.UpdateBuffer();
-            //sw.Move(1,1);
-            //Thread.Sleep(500);
+            sw.Move(1,1);
+            Thread.Sleep(500);
+        }
 
         Console.ReadLine();
     }
