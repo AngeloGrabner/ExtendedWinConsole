@@ -6,10 +6,10 @@ class Testing
 {
     static void Main()
     {
-        ExtendedConsole.SetBufferSize(150,20);
+        ExtendedConsole.SetBufferSize(120,20);
         //ExtendedConsole.WriteLine("12345678901234567890sgfjhiahgiasogpiahgofejfjf");
         //ExtendedConsole.Write("somthing");
-        SubWindow sw = new(100, 2, 12, 6);
+        SubWindow sw = new(10, 2, 12, 6);
         sw.WriteLine("somthing");
         sw.Write("line two\n", 4);
         sw.Write("0123456789012345678901234");

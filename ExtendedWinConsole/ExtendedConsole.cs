@@ -370,11 +370,11 @@ namespace ExtendedWinConsole
         }
         public static void WriteSubWindow(SubWindow sw)
         {
-            for (int y = 0; y < sw.rect.Bottom && sw.rect.Top+sw.rect.Bottom < _outputBuffer.Length; y++)
+            for (int y = 0; y < sw.rect.Bottom && y + sw.rect.Top < _width; y++)
             {
-                for (int x = 0; x < sw.rect.Right && sw.rect.Left + sw.rect.Right < _outputBuffer.Length; x++)
+                for (int x = 0; x < sw.rect.Right && x + sw.rect.Left < _height; x++)
                 {
-                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // out of bounce
+                    _outputBuffer[_utility.Convert2dTo1d(x + sw.rect.Left, y + sw.rect.Top)] = sw.buffer[sw.Utility.Convert2dTo1d(x, y)]; // some bugs with the offset
                 }
             }
         }
