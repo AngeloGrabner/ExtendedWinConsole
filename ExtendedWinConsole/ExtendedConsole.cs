@@ -190,6 +190,10 @@ namespace ExtendedWinConsole
         }
         public static void SetColor(int index, Color c)
         {
+            SetColor(index, new COLORREF(c));
+        }
+        public static void SetColor(int index, COLORREF c)
+        {
             CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
             conscreenbufinex.cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
             if (!NativeFunc.GetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
@@ -199,7 +203,7 @@ namespace ExtendedWinConsole
             }
             if (!(index >= 0 && index < 16))
                 throw new ArgumentException("index must be between 0 and 15");
-            conscreenbufinex.ColorTable[index] = new COLORREF(c);
+            conscreenbufinex.ColorTable[index] = c;
 
             if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle,ref conscreenbufinex))
             {
