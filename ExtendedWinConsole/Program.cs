@@ -7,8 +7,8 @@ class Testing
 {
     static void Main()
     {   
-        ExtendedConsole.SetMaximumBufferSize(20, 10);
-        ExtendedConsole.SetBufferSize(20, 10);
+        ExtendedConsole.SetMaximumBufferSize(30, 10);
+        ExtendedConsole.SetBufferSize(30, 10);
         ExtendedConsole.SetFont(16, 32);
         ExtendedConsole.SetCursorVisiblity(false);
         //ExtendedConsole.SetColor(3, Color.Brown);
@@ -21,17 +21,19 @@ class Testing
         //Thread.Sleep(1000);
         Stopwatch sw = Stopwatch.StartNew();
         COLORREF color = new();
-        for (byte r = 0; r < 255; r++)
+        for (byte r = 0; r < 255; r+=5)
         {
-            for (byte g = 0; g < 255; g++)
+            for (byte g = 0; g < 255; g+=5)
             {
-                for (byte b = 0; b < 255; b++)
+                for (byte b = 0; b < 255; b+=5)
                 {
                     color = new(r, g, b);
                     ExtendedConsole.SetColor(7, color);
-                    ExtendedConsole.Write("ABCDEFGHIJKLMNOPQRSTUVWXZY", 7);
+                    ExtendedConsole.Write("ABC");
+                    ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 7);
+                    ExtendedConsole.Write("XYZ", 6);
                     ExtendedConsole.Clear(false);
-                    //Thread.Sleep(100);
+                    //Thread.Sleep(10);
                 }
             }
         }

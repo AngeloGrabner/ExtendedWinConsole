@@ -341,7 +341,7 @@ namespace ExtendedWinConsole
                     if (++j == text.Length)
                         break;
                 }
-
+                //tempCursorPos.x++;
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = color;
             }
