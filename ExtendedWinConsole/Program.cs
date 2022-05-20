@@ -7,39 +7,29 @@ class Testing
 {
     static void Main()
     {
-        //ExtendedConsole.SetBufferSize(30,20);
-        //ExtendedConsole.SetWindowSize(30,20, true);
-        //ExtendedConsole.SetFont(16, 32);
-        ExtendedConsole.SetMaximumBufferSize(30, 20);
+        ExtendedConsole.SetColor(3, Color.Brown);
+        ExtendedConsole.WriteLine("abc", 3);
         Thread.Sleep(1000);
-        COLORREF color = new();
-        for (byte r = 0; r < 255; r++)
-        {
-            for (byte g = 0; g < 255; g++)
-            {
-                for (byte b = 0; b < 255; b++)
-                {
-                    color = new(r, g, b);
-                    ExtendedConsole.SetColor(7, color);
-                    ExtendedConsole.Write("test text", 7);
-                    ExtendedConsole.Clear(false);
-                    Thread.Sleep(500);
-                }
-            }
-        }
+        //ExtendedConsole.SetMaximumBufferSize(10, 100);
+        ExtendedConsole.SetColor(3, Color.BlueViolet);
+        //ExtendedConsole.WriteLine("abc", 3);
 
-        //SubWindow sw = new(50, 5, 14, 7);
-        //sw.WriteLine("somthing");
-        //sw.Write("line two\n", 4);
-        //sw.Write("01234567890123456789012345");
-        //for (int i = 0; i < 10; i++)
+        Thread.Sleep(1000);
+        //COLORREF color = new();
+        //for (byte r = 0; r < 255; r++)
         //{
-        //    ExtendedConsole.WriteSubWindow(sw);
-        //    ExtendedConsole.UpdateBuffer();
-        //    sw.Move(1,1);
-        //    Thread.Sleep(500);
+        //    for (byte g = 0; g < 255; g++)
+        //    {
+        //        for (byte b = 0; b < 255; b++)
+        //        {
+        //            color = new(r, g, b);
+        //            ExtendedConsole.SetColor(7, color);
+        //            ExtendedConsole.Write("test text", 7);
+        //            ExtendedConsole.Clear(false);
+        //            Thread.Sleep(500);
+        //        }
+        //    }
         //}
-
         Console.ReadLine();
     }
 

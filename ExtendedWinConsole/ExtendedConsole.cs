@@ -74,6 +74,7 @@ namespace ExtendedWinConsole
             {
                 throw new ArgumentException();
             }
+            
             conscreenbufinex.dwSize = new COORD(width, heith);
             if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
             {
@@ -181,7 +182,7 @@ namespace ExtendedWinConsole
             }
             if (!NativeFunc.SetConsoleScreenBufferSize(_outputHandle, new COORD ((short)_width, (short)_height)))
             {
-                //throw new Exception(Marshal.GetLastWin32Error().ToString());
+                throw new Exception(Marshal.GetLastWin32Error().ToString());
             }
         }
         public static void SetBufferSize(COORD size)
@@ -192,7 +193,7 @@ namespace ExtendedWinConsole
         {
             SetColor(index, new COLORREF(c));
         }
-        public static void SetColor(int index, COLORREF c)
+        public static void SetColor(int index, COLORREF c) // a bug where the window size decreases by 1 every time this gets called
         {
             CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
             conscreenbufinex.cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
@@ -204,7 +205,6 @@ namespace ExtendedWinConsole
             if (!(index >= 0 && index < 16))
                 throw new ArgumentException("index must be between 0 and 15");
             conscreenbufinex.ColorTable[index] = c;
-
             if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle,ref conscreenbufinex))
             {
 
@@ -298,13 +298,13 @@ namespace ExtendedWinConsole
             _cursor.y++;
             _cursor.x = 0;
         }
-        public static void WriteLine(object obj, ushort? color = null)
+        public static void WriteLine(object obj, ushort color)
         {
             string? text = obj.ToString();
             if (text != null)
                 WriteLine(text, color);
         }
-        public static void WriteLine(string text, ushort? color = null)
+        public static void WriteLine(string text, ushort color)
         {
             Write(text, color);
             _cursor.y++;
@@ -315,7 +315,7 @@ namespace ExtendedWinConsole
             _cursor.y++;
             _cursor.x = 0;
         }
-        public static void Write(object obj, ushort? color = null)
+        public static void Write(object obj, ushort color)
         {
             string? text = obj.ToString();
             if (text != null)
