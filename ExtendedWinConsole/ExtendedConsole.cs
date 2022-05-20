@@ -10,8 +10,6 @@ namespace ExtendedWinConsole
 {
     public static class ExtendedConsole // it is not recommended to use the normal System.Console class in combination with this class
     {
-        // bugs: Write/WriteLine bug: out of bounce when text is to large
-        // bugs: WriteSubWindow bug: out of bounce  
         private static Logger _logger = new();
         private static Utility _utility;
         private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
@@ -174,12 +172,7 @@ namespace ExtendedWinConsole
 
             _utility = new(_width);
 
-            for (int i = 0; i < _outputBuffer.Length; i++)
-            {
-                _outputBuffer[i] = new CHAR_INFO();
-                _outputBuffer[i].Attributes = 15;
-                _outputBuffer[i].UnicodeChar = ' ';
-            }
+            FlushBuffer();
             if (!NativeFunc.SetConsoleScreenBufferSize(_outputHandle, new COORD ((short)_width, (short)_height)))
             {
                 throw new Exception(Marshal.GetLastWin32Error().ToString());
@@ -193,7 +186,7 @@ namespace ExtendedWinConsole
         {
             SetColor(index, new COLORREF(c));
         }
-        public static void SetColor(int index, COLORREF c) // a bug where the window size decreases by 1 every time this gets called
+        public static void SetColor(int index, COLORREF c) // (fixed) a bug where the window size decreases by 1 every time this gets called
         {
             CONSOLE_SCREEN_BUFFER_INFO_EX conscreenbufinex = new CONSOLE_SCREEN_BUFFER_INFO_EX();
             conscreenbufinex.cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>();
@@ -205,10 +198,11 @@ namespace ExtendedWinConsole
             if (!(index >= 0 && index < 16))
                 throw new ArgumentException("index must be between 0 and 15");
             conscreenbufinex.ColorTable[index] = c;
-            if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle,ref conscreenbufinex))
+            conscreenbufinex.srWindow.Bottom++; // i have no clue why this line is fixing the bug
+            if (!NativeFunc.SetConsoleScreenBufferInfoEx(_outputHandle, ref conscreenbufinex))
             {
 
-                throw new Exception("error while setting buffer info "+Marshal.GetLastWin32Error());
+                throw new Exception("error while setting buffer info " + Marshal.GetLastWin32Error());
             }
         }
         public static CONSOLE_FONT_INFOEX? GetFont()
