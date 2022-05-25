@@ -16,6 +16,7 @@ namespace ExtendedWinConsole
         private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
+        private static INPUT_RECORD[] _inputRecords = new INPUT_RECORD[1];
         public static int BufferLength { get { return _outputBuffer.Length; } }
         private static int _width = 0, _height = 0;
         private static ushort _baseColor = 15;
@@ -56,7 +57,8 @@ namespace ExtendedWinConsole
                 _logger.addError("in GetWindowRect: win32error: " + Marshal.GetLastWin32Error());
                 throw new Exception("error while getting rect of window");
             }
-            SetCursorVisiblity(false);
+            //SetCursorVisiblity(false);
+            SetReadSize(256);
         }
         public static void SetMaximumBufferSize(short width, short heith)
         {
@@ -372,6 +374,31 @@ namespace ExtendedWinConsole
             //_cursor = Convert1dTo2d((short)i);
             _cursor = tempCursorPos;
             UpdateBuffer(false);
+        }
+        public static void SetReadSize(uint size)
+        {
+            _inputRecords = new INPUT_RECORD[size];
+        }
+        public static string? ReadLine(bool displayInput = true) //to be added: display input, wait for user input
+        {
+            uint numberOfEventsRead = 0;
+            if (!NativeFunc.ReadConsoleInput(_inputHandle, _inputRecords, (uint)_inputRecords.Length, out numberOfEventsRead))
+            {
+                throw new Exception("win32error: "+Marshal.GetLastWin32Error());
+            }
+            if (numberOfEventsRead == 0)
+            {
+                return null;
+            }
+            List<char> textBuffer = new();
+            for (int i = 0; i < numberOfEventsRead; i++)
+            {
+                if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT)
+                {
+                    textBuffer.Add(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                }
+            }
+            return new string(textBuffer.ToArray());
         }
         public static void WriteSubWindow(SubWindow sw)
         {

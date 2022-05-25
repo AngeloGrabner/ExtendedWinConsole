@@ -52,7 +52,7 @@ namespace ExtendedWinConsole
             SafeFileHandle hConsoleOutput,
             out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool ReadConsoleInput( //https://docs.microsoft.com/en-us/windows/console/readconsoleinput
             SafeFileHandle hConsoleInput,
             [Out] INPUT_RECORD[] lpBuffer,

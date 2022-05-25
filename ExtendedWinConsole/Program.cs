@@ -6,40 +6,51 @@ using System.Drawing;
 class Testing
 {
     static void Main()
-    {   
-        ExtendedConsole.SetMaximumBufferSize(30, 10);
-        ExtendedConsole.SetBufferSize(30, 10);
+    {
+        ExtendedConsole.SetMaximumBufferSize(32, 10);
+        ExtendedConsole.SetBufferSize(32, 10);
         ExtendedConsole.SetFont(16, 32);
         ExtendedConsole.SetCursorVisiblity(false);
-        //ExtendedConsole.SetColor(3, Color.Brown);
-        //ExtendedConsole.WriteLine("abc", 3);
-        //Thread.Sleep(1000);
-        //ExtendedConsole.Clear(false);
-        //ExtendedConsole.SetColor(3, Color.BlueViolet);
-        //ExtendedConsole.WriteLine("abc", 3);
-
-        //Thread.Sleep(1000);
+        ExtendedConsole.WriteLine("ABCDEFGHIJKLMNOPQRSTUVW", 7);
+        ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 8);
+        Thread.Sleep(1000);
+        string? a = ExtendedConsole.ReadLine();
+        if (!(a == null))
+            ExtendedConsole.Write("worked: "+a);
+        else
+            ExtendedConsole.Write("no inputs read");
+        Console.ReadLine();
+    }
+    static void NotMain()
+    {   
+        ExtendedConsole.SetMaximumBufferSize(32, 10);
+        ExtendedConsole.SetBufferSize(32, 10);
+        ExtendedConsole.SetFont(16, 32);
+        ExtendedConsole.SetCursorVisiblity(false);
+        ExtendedConsole.SetColor(3, Color.BlueViolet);
+        Thread.Sleep(1000);
         Stopwatch sw = Stopwatch.StartNew();
         COLORREF color = new();
-        for (byte r = 0; r < 255; r+=5)
+        for (byte r = 0; r < 255; r += 25)
         {
-            for (byte g = 0; g < 255; g+=5)
+            for (byte g = 0; g < 255; g += 25)
             {
-                for (byte b = 0; b < 255; b+=5)
+                for (byte b = 0; b < 255; b += 25)
                 {
                     color = new(r, g, b);
                     ExtendedConsole.SetColor(7, color);
                     ExtendedConsole.Write("ABC");
                     ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 7);
                     ExtendedConsole.Write("XYZ", 6);
+                    //ExtendedConsole.Write("abc");
                     ExtendedConsole.Clear(false);
-                    //Thread.Sleep(10);
+                    Thread.Sleep(10);
                 }
             }
         }
         sw.Stop();
         Console.WriteLine(sw.Elapsed);
-        Console.ReadLine();
+        Thread.Sleep(1000);
     }
 
     public static void exTest()
