@@ -3,88 +3,27 @@ using ExtendedWinConsole;
 using System.Threading;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Collections.Generic;
 class Testing
 {
     static void Main()
     {
-        ExtendedConsole.SetMaximumBufferSize(32, 10);
-        ExtendedConsole.SetBufferSize(32, 10);
-        ExtendedConsole.SetFont(16, 32);
+        ExtendedConsole.SetMaximumBufferSize(100, 20);
+        ExtendedConsole.SetBufferSize(100, 20);
+        ExtendedConsole.SetFont(12, 24);
         ExtendedConsole.SetCursorVisiblity(false);
         ExtendedConsole.WriteLine("ABCDEFGHIJKLMNOPQRSTUVW", 7);
         ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 8);
-        Thread.Sleep(1000);
-        string? a = ExtendedConsole.ReadLine();
-        if (!(a == null))
-            ExtendedConsole.Write("worked: "+a);
+        //Thread.Sleep(1000);
+        string a = ExtendedConsole.ReadLine();
+        a = a.Substring(0, a.Length - 1);
+        if (File.Exists(a))
+            ExtendedConsole.WriteLine("worked");
         else
-            ExtendedConsole.Write("no inputs read");
+            ExtendedConsole.WriteLine("didnt "+a);
+
         Console.ReadLine();
     }
-    static void NotMain()
-    {   
-        ExtendedConsole.SetMaximumBufferSize(32, 10);
-        ExtendedConsole.SetBufferSize(32, 10);
-        ExtendedConsole.SetFont(16, 32);
-        ExtendedConsole.SetCursorVisiblity(false);
-        ExtendedConsole.SetColor(3, Color.BlueViolet);
-        Thread.Sleep(1000);
-        Stopwatch sw = Stopwatch.StartNew();
-        COLORREF color = new();
-        for (byte r = 0; r < 255; r += 25)
-        {
-            for (byte g = 0; g < 255; g += 25)
-            {
-                for (byte b = 0; b < 255; b += 25)
-                {
-                    color = new(r, g, b);
-                    ExtendedConsole.SetColor(7, color);
-                    ExtendedConsole.Write("ABC");
-                    ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 7);
-                    ExtendedConsole.Write("XYZ", 6);
-                    //ExtendedConsole.Write("abc");
-                    ExtendedConsole.Clear(false);
-                    Thread.Sleep(10);
-                }
-            }
-        }
-        sw.Stop();
-        Console.WriteLine(sw.Elapsed);
-        Thread.Sleep(1000);
-    }
-
-    public static void exTest()
-    {
-        ExtendedConsole.SetFont(10, 20);
-        ExtendedConsole.SetCursorVisiblity(false);
-        ExtendedConsole.SetBufferSize(50, 1);
-        Thread.Sleep(100);
-        Stopwatch ex = new();
-        ex.Start();
-        for (int i = 0; i < 10000; i++)
-        {
-            ExtendedConsole.WriteLine(i);
-            ExtendedConsole.Clear(false);
-        }
-        ex.Stop();
-        ExtendedConsole.WriteLine($"time elapsed: {ex.Elapsed}");
-        Console.ReadKey();
-    }
-
-    public static void normal()
-    {
-        Console.WriteLine("in normal");
-        Thread.Sleep(1000);
-        Stopwatch ex = new();
-        ex.Start();
-        for (int i = 0; i < 10000; i++)
-        {
-            Console.WriteLine(i);
-            //Thread.Sleep(10);
-            Console.Clear();
-        }
-        ex.Stop();
-        Console.WriteLine($"time elapsed: {ex.Elapsed}");
-        Console.ReadKey();
-    }
+  
 }

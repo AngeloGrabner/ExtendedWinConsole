@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -379,26 +380,37 @@ namespace ExtendedWinConsole
         {
             _inputRecords = new INPUT_RECORD[size];
         }
-        public static string? ReadLine(bool displayInput = true) //to be added: display input, wait for user input
+        public static string ReadLine(bool displayInput = true) //bugs: 
         {
-            uint numberOfEventsRead = 0;
-            if (!NativeFunc.ReadConsoleInput(_inputHandle, _inputRecords, (uint)_inputRecords.Length, out numberOfEventsRead))
-            {
-                throw new Exception("win32error: "+Marshal.GetLastWin32Error());
-            }
-            if (numberOfEventsRead == 0)
-            {
-                return null;
-            }
+            uint numberOfEventsRead = 0; 
             List<char> textBuffer = new();
-            for (int i = 0; i < numberOfEventsRead; i++)
+            while (true)
             {
-                if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT)
+                if (!NativeFunc.ReadConsoleInput(_inputHandle, _inputRecords, (uint)_inputRecords.Length, out numberOfEventsRead))
                 {
-                    textBuffer.Add(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                    throw new Exception("win32error: " + Marshal.GetLastWin32Error());
+                }
+                for (int i = 0; i < numberOfEventsRead; i++)
+                {
+                    if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT && _inputRecords[i].Event.KeyEvent.bKeyDown == false) //input buffer a a key event for key up and key down 
+                    {
+                        if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\0') // \0 lands in the input buffer a lot and we dont want it here 
+                        {
+                            continue;
+                        }
+                        else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\u000d') // 0x0D is ENTER Key
+                        {
+                            goto ReadLineEnd;
+                        }
+                        textBuffer.Add(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                    }
                 }
             }
-            return new string(textBuffer.ToArray());
+        ReadLineEnd:
+            string output = new string(textBuffer.ToArray());
+            if (displayInput)
+                WriteLine(output);
+            return output;
         }
         public static void WriteSubWindow(SubWindow sw)
         {
