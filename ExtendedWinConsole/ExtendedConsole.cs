@@ -395,19 +395,28 @@ namespace ExtendedWinConsole
         }
         public static void Remove()
         {
-
+            Remove(_cursor.x,_cursor.y);
         }
-        public static void Remove(short x, short y)
+        public static void Remove(short x, short y) // to be added: update screen buffer
         {
-            if ((x < 0 || y < 0) || (x > _width || y > _height))
+            if (x < 0 || y < 0 || x > _width || y > _height)
             {
                 throw new ArgumentOutOfRangeException($"x: {x}, y {y}");
             }
-            //to be added removing a char
+            _outputBuffer[_utility.Convert2dTo1d(x, y)].UnicodeChar = ' ';
+            _outputBuffer[_utility.Convert2dTo1d(x, y)].Attributes = _baseColor;
+            if (--_cursor.x < 0)
+            {
+                _cursor.x = (short)(_width-1);
+                if (--_cursor.y < 0)
+                {
+                    _cursor.y = 0;
+                }
+            }
         }
         public static void Remove(COORD pos)
         {
-
+            Remove(pos.x, pos.y);
         }
         public static void SetReadSize(uint size)
         {
