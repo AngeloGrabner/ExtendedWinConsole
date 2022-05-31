@@ -389,34 +389,28 @@ namespace ExtendedWinConsole
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = _baseColor;
             }
-            //_cursor = Convert1dTo2d((short)i);
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
-        public static void Remove()
+        public static void Remove(bool updateBuffer = true)
         {
-            Remove(_cursor.x,_cursor.y);
-        }
-        public static void Remove(short x, short y) // to be added: update screen buffer
-        {
-            if (x < 0 || y < 0 || x > _width || y > _height)
+            while (_outputBuffer[_utility.Convert2dTo1d(_cursor.x , _cursor.y)].UnicodeChar == ' ')
             {
-                throw new ArgumentOutOfRangeException($"x: {x}, y {y}");
-            }
-            _outputBuffer[_utility.Convert2dTo1d(x, y)].UnicodeChar = ' ';
-            _outputBuffer[_utility.Convert2dTo1d(x, y)].Attributes = _baseColor;
-            if (--_cursor.x < 0)
-            {
-                _cursor.x = (short)(_width-1);
-                if (--_cursor.y < 0)
+                if (--_cursor.x < 0)
                 {
-                    _cursor.y = 0;
+                    _cursor.x = (short)(_width - 1);
+                    if (--_cursor.y < 0)
+                    {
+                        _cursor.y = 0;
+                    }
                 }
             }
-        }
-        public static void Remove(COORD pos)
-        {
-            Remove(pos.x, pos.y);
+            _outputBuffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].UnicodeChar = ' ';
+            _outputBuffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].Attributes = _baseColor;
+            if (updateBuffer)
+            {
+                UpdateBuffer(false);
+            }
         }
         public static void SetReadSize(uint size)
         {

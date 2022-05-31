@@ -16,16 +16,20 @@ class Testing
         ExtendedConsole.WriteLine("ABCDEFGHIJKLMNOPQRSTUVW", 7);
         ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 8);
         Thread.Sleep(1000);
-        ExtendedConsole.Remove();
-        Thread.Sleep(1000);
-        ExtendedConsole.Write("123");
-        //string a = ExtendedConsole.ReadLine();
-        //a = a.Substring(0, a.Length - 1);
-        ////if (File.Exists(a))
-        ////    ExtendedConsole.WriteLine("worked");
-        ////else
-        ////    ExtendedConsole.WriteLine("didnt "+a);
-        //ExtendedConsole.WriteLine("wow: "+a);
+        //for (int i = 0; i < 30; i++)
+        //{
+        //    ExtendedConsole.Remove();
+        //    Thread.Sleep(200);
+        //}
+        //Thread.Sleep(500);
+        //ExtendedConsole.Write("123");
+        string a = ExtendedConsole.ReadLine();
+        a = a.Substring(0, a.Length - 1);
+        //if (File.Exists(a))
+        //    ExtendedConsole.WriteLine("worked");
+        //else
+        //    ExtendedConsole.WriteLine("didnt "+a);
+        ExtendedConsole.WriteLine("wow: " + a);
 
         Console.ReadLine();
     }
