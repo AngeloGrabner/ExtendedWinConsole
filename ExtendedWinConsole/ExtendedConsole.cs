@@ -285,6 +285,10 @@ namespace ExtendedWinConsole
                 _outputBuffer[i].Attributes = _baseColor; 
             }
         }
+        public static void WriteLine(char c)
+        {
+            WriteLine(c.ToString());
+        }
         public static void WriteLine(object obj)
         {
             WriteLine(obj.ToString());
@@ -294,6 +298,10 @@ namespace ExtendedWinConsole
             Write(text);
             _cursor.y++;
             _cursor.x = 0;
+        }
+        public static void WriteLine(char c, ushort color)
+        {
+            WriteLine(c.ToString(), color);
         }
         public static void WriteLine(object obj, ushort color)
         {
@@ -311,12 +319,6 @@ namespace ExtendedWinConsole
         {
             _cursor.y++;
             _cursor.x = 0;
-        }
-        public static void Write(object obj, ushort color)
-        {
-            string? text = obj.ToString();
-            if (text != null)
-                Write(text, color);
         }
         [MethodImpl(MethodImplOptions.AggressiveOptimization, MethodCodeType = MethodCodeType.IL)]
         public static void Write(string text, ushort color)
@@ -351,10 +353,25 @@ namespace ExtendedWinConsole
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
+        public static void Write(object obj, ushort color)
+        {
+            string? text = obj.ToString();
+            if (text != null)
+                Write(text, color);
+        }
+        public static void Write(char c)
+        {
+            Write(c.ToString());
+        }
+        public static void Write(char c, ushort color)
+        {
+            Write(c.ToString(), color);
+        }
         public static void Wrtie(object obj)
         {
             Write(obj.ToString());
         }
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static void Write(string text)
         {
             COORD tempCursorPos = _cursor;
@@ -376,11 +393,27 @@ namespace ExtendedWinConsole
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
+        public static void Remove()
+        {
+
+        }
+        public static void Remove(short x, short y)
+        {
+            if ((x < 0 || y < 0) || (x > _width || y > _height))
+            {
+                throw new ArgumentOutOfRangeException($"x: {x}, y {y}");
+            }
+            //to be added removing a char
+        }
+        public static void Remove(COORD pos)
+        {
+
+        }
         public static void SetReadSize(uint size)
         {
             _inputRecords = new INPUT_RECORD[size];
         }
-        public static string ReadLine(bool displayInput = true) //bugs: 
+        public static string ReadLine(bool displayInput = true)
         {
             uint numberOfEventsRead = 0; 
             List<char> textBuffer = new();
@@ -394,22 +427,35 @@ namespace ExtendedWinConsole
                 {
                     if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT && _inputRecords[i].Event.KeyEvent.bKeyDown == false) //input buffer a a key event for key up and key down 
                     {
-                        if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\0') // \0 lands in the input buffer a lot and we dont want it here 
+                        if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\0') // \0 lands in the input buffer, if something like  a lot and we dont want it here 
                         {
                             continue;
+                        }
+                        else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\u0008') // backspace
+                        {
+                            if (displayInput)
+                            {
+                                Remove();
+                            }
+                            textBuffer.RemoveAt(textBuffer.Count - 1);
                         }
                         else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\u000d') // 0x0D is ENTER Key
                         {
                             goto ReadLineEnd;
                         }
-                        textBuffer.Add(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                        else
+                        {
+                            if (displayInput)
+                            {
+                                Write(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                            }
+                            textBuffer.Add(_inputRecords[i].Event.KeyEvent.UnicodeChar);
+                        }
                     }
                 }
             }
         ReadLineEnd:
             string output = new string(textBuffer.ToArray());
-            if (displayInput)
-                WriteLine(output);
             return output;
         }
         public static void WriteSubWindow(SubWindow sw)
