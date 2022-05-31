@@ -159,6 +159,22 @@ namespace ExtendedWinConsole
             FillBuffer();
             DrawBorder();
         }
+        public void Remove()
+        {
+            while (_buffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].UnicodeChar == ' ')
+            {
+                if (--_cursor.x < 0)
+                {
+                    _cursor.x = (short)(_rect.Right - 1);
+                    if (--_cursor.y < 0)
+                    {
+                        _cursor.y = 0;
+                    }
+                }
+            }
+            _buffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].UnicodeChar = ' ';
+            _buffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].Attributes = _baseColor;
+        }
         public void Resize(short newX, short newY,short newWidth, short newHeight)
         {
             _rect = new SMALL_RECT(newX,newY,newWidth,newHeight);

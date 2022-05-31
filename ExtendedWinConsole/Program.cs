@@ -24,12 +24,12 @@ class Testing
         //Thread.Sleep(500);
         //ExtendedConsole.Write("123");
         string a = ExtendedConsole.ReadLine();
-        a = a.Substring(0, a.Length - 1);
+        //a = a.Substring(0, a.Length - 1);
         //if (File.Exists(a))
         //    ExtendedConsole.WriteLine("worked");
         //else
         //    ExtendedConsole.WriteLine("didnt "+a);
-        ExtendedConsole.WriteLine("wow: " + a);
+        ExtendedConsole.WriteLine("...wow: " + a);
 
         Console.ReadLine();
     }

@@ -459,6 +459,7 @@ namespace ExtendedWinConsole
             }
         ReadLineEnd:
             string output = new string(textBuffer.ToArray());
+            WriteLine();
             return output;
         }
         public static void WriteSubWindow(SubWindow sw)
