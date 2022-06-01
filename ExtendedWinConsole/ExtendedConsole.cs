@@ -368,7 +368,7 @@ namespace ExtendedWinConsole
         {
             Write(c.ToString(), color);
         }
-        public static void Wrtie(object obj)
+        public static void Write(object obj)
         {
             Write(obj.ToString());
         }
