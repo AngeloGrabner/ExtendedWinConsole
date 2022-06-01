@@ -9,6 +9,7 @@ namespace ExtendedWinConsole
         private ushort _baseColor = 15;
         private const short _startingIndex = 1;
         private COORD _cursor = new COORD(_startingIndex,_startingIndex);
+        public COORD Cursor { get { return _cursor; } }
         private SMALL_RECT _rect;
         private Utility _utility;
         internal Utility Utility
