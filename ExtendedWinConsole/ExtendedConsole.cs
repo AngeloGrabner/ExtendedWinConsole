@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace ExtendedWinConsole 
 {
-    public static class ExtendedConsole // it is not recommended to use the normal System.Console class in combination with this class
+    public static class ExConsole // it is not recommended to use the normal System.Console class in combination with this class
     {
         private static Logger _logger = new();
         private static Utility _utility;
@@ -17,7 +17,7 @@ namespace ExtendedWinConsole
         private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
         private static COORD _cursor = new(0,0);
         private static CHAR_INFO[] _outputBuffer;
-        private static INPUT_RECORD[] _inputRecords = new INPUT_RECORD[1];
+        private static INPUT_RECORD[] _inputRecords = new INPUT_RECORD[5];
         public static int BufferLength { get { return _outputBuffer.Length; } }
         private static int _width = 0, _height = 0;
         private static ushort _baseColor = 15;
@@ -28,7 +28,7 @@ namespace ExtendedWinConsole
 
 #pragma warning disable 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static ExtendedConsole()
+        static ExConsole()
         {
             _utility = new(_width);
             //Console.WriteLine(NativeFunc.GetConsoleWindow());
@@ -59,7 +59,7 @@ namespace ExtendedWinConsole
                 throw new Exception("error while getting rect of window");
             }
             //SetCursorVisiblity(false);
-            SetReadSize(256);
+            //SetReadSize(5);
         }
         public static void SetMaximumBufferSize(short width, short heith)
         {
@@ -412,7 +412,7 @@ namespace ExtendedWinConsole
                 UpdateBuffer(false);
             }
         }
-        public static void SetReadSize(uint size)
+        private static void SetReadSize(uint size)
         {
             _inputRecords = new INPUT_RECORD[size];
         }
@@ -420,6 +420,10 @@ namespace ExtendedWinConsole
         {
             uint numberOfEventsRead = 0; 
             List<char> textBuffer = new();
+            if (!NativeFunc.FlushConsoleInputBuffer(_inputHandle))
+            {
+                throw new Exception("win32 error: "+Marshal.GetLastWin32Error());
+            }
             while (true)
             {
                 if (!NativeFunc.ReadConsoleInput(_inputHandle, _inputRecords, (uint)_inputRecords.Length, out numberOfEventsRead))

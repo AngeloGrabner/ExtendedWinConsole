@@ -9,27 +9,27 @@ class Testing
 {
     static void Main()
     {
-        ExtendedConsole.SetMaximumBufferSize(100, 20);
-        ExtendedConsole.SetBufferSize(100, 20);
-        ExtendedConsole.SetFont(12, 24);
-        ExtendedConsole.SetCursorVisiblity(false);
-        ExtendedConsole.WriteLine("ABCDEFGHIJKLMNOPQRSTUVW", 7);
-        ExtendedConsole.Write("DEFGHIJKLMNOPQRSTUVW", 8);
+        ExConsole.SetMaximumBufferSize(100, 20);
+        ExConsole.SetBufferSize(100, 20);
+        ExConsole.SetFont(12, 24);
+        ExConsole.SetCursorVisiblity(false);
+        ExConsole.WriteLine("ABCDEFGHIJKLMNOPQRSTUVW", 7);
+        ExConsole.Write("DEFGHIJKLMNOPQRSTUVW", 8);
         Thread.Sleep(1000);
         //for (int i = 0; i < 30; i++)
         //{
-        //    ExtendedConsole.Remove();
+        //    ExConsole.Remove();
         //    Thread.Sleep(200);
         //}
         //Thread.Sleep(500);
-        //ExtendedConsole.Write("123");
-        string a = ExtendedConsole.ReadLine();
+        //ExConsole.Write("123");
+        string a = ExConsole.ReadLine();
         //a = a.Substring(0, a.Length - 1);
         //if (File.Exists(a))
-        //    ExtendedConsole.WriteLine("worked");
+        //    ExConsole.WriteLine("worked");
         //else
-        //    ExtendedConsole.WriteLine("didnt "+a);
-        ExtendedConsole.WriteLine("...wow: " + a);
+        //    ExConsole.WriteLine("didnt "+a);
+        ExConsole.WriteLine("...wow: " + a);
 
         Console.ReadLine();
     }

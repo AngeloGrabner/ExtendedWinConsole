@@ -59,6 +59,8 @@ namespace ExtendedWinConsole
             uint nLength,
             out uint lpNumberOfEventsRead
         );
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool FlushConsoleInputBuffer(SafeFileHandle hConsoleInput);
     }
 
 }
