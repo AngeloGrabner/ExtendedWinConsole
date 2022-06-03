@@ -13,12 +13,47 @@ namespace ExtendedWinConsole
     {
         private static Logger _logger = new();
         private static Utility _utility;
-        private static SMALL_RECT _writtenRegion = new(),_windowPos = new();
+        private static SMALL_RECT _writtenRegion = new(), _windowPos = new();
         private static SafeFileHandle _outputHandle, _inputHandle, _windowHandle;
-        private static COORD _cursor = new(0,0);
+        private static COORD _cursor = new(0, 0);
+        public static COORD Cursor
+        {
+            get
+            {
+                return _cursor;
+            }
+            set
+            {
+                if (value.y >= 0 && value.y < _height && value.x >= 0 && value.x < _width)
+                {
+                    _cursor = value;
+                }
+                else
+                {
+                    throw new ArgumentException("cursor position was outside of bounce");
+                }
+            }
+        }
         private static CHAR_INFO[] _outputBuffer;
         private static INPUT_RECORD[] _inputRecords = new INPUT_RECORD[5];
-        public static int BufferLength { get { return _outputBuffer.Length; } }
+        public static CHAR_INFO[] OutputBuffer 
+        {
+            get 
+            {
+                return _outputBuffer; 
+            }
+            set 
+            {
+                if (_outputBuffer.Length == value.Length)
+                {
+                    _outputBuffer = value;
+                }
+                else
+                {
+                    throw new ArgumentException("buffer size can not be changed here, use SetBufferSize()");
+                }
+            }
+        }
         private static int _width = 0, _height = 0;
         public static int Width { get { return _width; } }
         public static int Height { get { return _height; } }
@@ -60,7 +95,7 @@ namespace ExtendedWinConsole
                 throw new Exception("error while getting rect of window");
             }
             //SetCursorVisiblity(false);
-            //SetReadSize(5);
+            SetReadSize(31);
         }
         public static void SetMaximumBufferSize(short width, short heith)
         {
@@ -168,8 +203,8 @@ namespace ExtendedWinConsole
                 _logger.addError("in SetBufferSize: size is to small");
                 throw new ArgumentException("size is to small");
             }
-            _width = sizeX;
-            _height = sizeY;
+            _width = ++sizeX;
+            _height = ++sizeY;
             _writtenRegion = new SMALL_RECT(0, 0, (short)_width, (short)_height);
             _outputBuffer = new CHAR_INFO[_width * _height];
 #pragma warning restore
@@ -241,17 +276,6 @@ namespace ExtendedWinConsole
                 throw new Exception("error while setting font info " + Marshal.GetLastWin32Error());
             }
 
-        }
-        public static void SetBuffer(CHAR_INFO[] buffer)
-        {
-            if (buffer.Length != _outputBuffer.Length)
-            {
-                throw new ArgumentException("buffer length is incorrect");
-            }
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                _outputBuffer[i] = buffer[i];
-            }
         }
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static void UpdateBuffer(bool flushBuffer = true)
@@ -326,14 +350,13 @@ namespace ExtendedWinConsole
         {
             if (color > 15)
             {
-                color = 15;
+                color = _baseColor;
             }
             COORD tempCursorPos = _cursor;
             int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-            int end = _outputBuffer.Length - (_width + 1);
-            for (int j = 0; j < text.Length && i < end; i++, j++)
+            for (int j = 0; j < text.Length; i++, j++)
             {
-                if (++tempCursorPos.x == _width - 1)
+                if (++tempCursorPos.x == _width)
                 {
                     tempCursorPos.x = _startingIndex;
                     tempCursorPos.y++;
@@ -343,11 +366,14 @@ namespace ExtendedWinConsole
                 {
                     tempCursorPos.y++;
                     tempCursorPos.x = _startingIndex;
-                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y); // possible out of bounce?
                     if (++j == text.Length)
                         break;
+                    if (++j == text.Length) //out of bounce check IF \n is the last char in the string
+                    {
+                        continue;
+                    }
                 }
-                //tempCursorPos.x++;
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = color;
             }
@@ -379,23 +405,31 @@ namespace ExtendedWinConsole
             int i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
             for (int j = 0; j < text.Length && i < _outputBuffer.Length; i++, j++)
             {
+                if (++tempCursorPos.x == _width)
+                {
+                    tempCursorPos.x = _startingIndex;
+                    tempCursorPos.y++;
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
+                }
                 if (text[j] == '\n')
                 {
                     tempCursorPos.y++;
                     tempCursorPos.x = 0;
-                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y);
-                    j++;
+                    i = _utility.Convert2dTo1d(tempCursorPos.x, tempCursorPos.y); // possible out of bounce?
+                    if (++j == text.Length) //out of bounce check
+                    {
+                        continue;
+                    }
                 }
-                tempCursorPos.x++;
                 _outputBuffer[i].UnicodeChar = text[j];
                 _outputBuffer[i].Attributes = _baseColor;
             }
             _cursor = tempCursorPos;
             UpdateBuffer(false);
         }
-        public static void Remove(bool updateBuffer = true)
+        public static void Remove(bool skipSpaceChar = true, bool updateBuffer = true)
         {
-            while (_outputBuffer[_utility.Convert2dTo1d(_cursor.x , _cursor.y)].UnicodeChar == ' ')
+            if (!skipSpaceChar)
             {
                 if (--_cursor.x < 0)
                 {
@@ -405,6 +439,20 @@ namespace ExtendedWinConsole
                         _cursor.y = 0;
                     }
                 }
+            }
+            else
+            {
+                while (_outputBuffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].UnicodeChar == ' ')
+                {
+                    if (--_cursor.x < 0)
+                    {
+                        _cursor.x = (short)(_width - 1);
+                        if (--_cursor.y < 0)
+                        {
+                            _cursor.y = 0;
+                        }
+                    }
+                } 
             }
             _outputBuffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].UnicodeChar = ' ';
             _outputBuffer[_utility.Convert2dTo1d(_cursor.x, _cursor.y)].Attributes = _baseColor;
@@ -433,8 +481,9 @@ namespace ExtendedWinConsole
                 }
                 for (int i = 0; i < numberOfEventsRead; i++)
                 {
-                    if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT && _inputRecords[i].Event.KeyEvent.bKeyDown == false) //input buffer a a key event for key up and key down 
+                    if (_inputRecords[i].EventType == (ushort)InputEventType.KEY_EVENT && _inputRecords[i].Event.KeyEvent.bKeyDown == true) //input buffer one key event for key up and key down 
                     {
+                        //Write($"{_inputRecords[i].Event.KeyEvent.dwControlKeyState:x}");
                         if (textBuffer.Count > 0 && _inputRecords[i].Event.KeyEvent.UnicodeChar == '\b') 
                         {
                             if (displayInput)
@@ -446,8 +495,8 @@ namespace ExtendedWinConsole
                         else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\u000d') // 0x0D is ENTER Key
                         {
                             goto ReadLineEnd;
-                        }  
-                        else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\0' || _inputRecords[i].Event.KeyEvent.UnicodeChar == '\u0016' || _inputRecords[i].Event.KeyEvent.UnicodeChar == '\b') // \0 lands in the input buffer, if something like  a lot and we dont want it here 
+                        } 
+                        else if (_inputRecords[i].Event.KeyEvent.UnicodeChar == '\0'||_inputRecords[i].Event.KeyEvent.UnicodeChar == '\u0016' || _inputRecords[i].Event.KeyEvent.UnicodeChar == '\b')  // \0 lands in the input buffer, if something like  a lot and we dont want it here 
                         {
                             continue;
                         }
@@ -466,6 +515,60 @@ namespace ExtendedWinConsole
             string output = new string(textBuffer.ToArray());
             WriteLine();
             return output;
+        }
+        public static ConsoleKeyInfo ReadKey(bool displayInput = false) // not really tested maigh be very bug
+        {
+            uint numberOfEventsRead = 0;
+            if (!NativeFunc.FlushConsoleInputBuffer(_inputHandle))
+            {
+                throw new Exception("win32 error: " + Marshal.GetLastWin32Error());
+            }
+            ConsoleKeyInfo keyInfo = new ConsoleKeyInfo();
+            while (true)
+            {
+                if (!NativeFunc.ReadConsoleInput(_inputHandle, _inputRecords, (uint)_inputRecords.Length, out numberOfEventsRead))
+                {
+                    throw new Exception("win32error: " + Marshal.GetLastWin32Error());
+                }
+                if (_inputRecords[0].EventType == (ushort)InputEventType.KEY_EVENT && _inputRecords[0].Event.KeyEvent.bKeyDown == true) //input buffer one key event for key up and key down 
+                {
+                    if (displayInput)
+                    {
+                        Write(_inputRecords[0].Event.KeyEvent.UnicodeChar);
+                    }
+                    bool shift = false, alt = false, control = false;
+                    switch (_inputRecords[0].Event.KeyEvent.dwControlKeyState)
+                    {
+                        case ControlKeyState.SHIFT_PRESSED:
+                            shift = true;
+                            break;
+                        case ControlKeyState.LEFT_CTRL_PRESSED:
+                        case ControlKeyState.RIGHT_CTRL_PRESSED:
+                            control = true;
+                            break;
+                        case ControlKeyState.LEFT_ALT_PRESSED:
+                        case ControlKeyState.RIGHT_ALT_PRESSED:
+                            alt = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    keyInfo = new ConsoleKeyInfo(_inputRecords[0].Event.KeyEvent.UnicodeChar, (ConsoleKey)_inputRecords[0].Event.KeyEvent.wVirtualScanCode, shift, alt, control);
+                    goto ReadKeyEnd;
+                }
+
+            }
+        ReadKeyEnd:
+            
+            //WriteLine();
+            return keyInfo;
+        }
+        public static int Get2dBufferIndex(int x, int y)
+        {
+            if (x >= 0 && y >= 0 && x < _width && y < _height)
+                return _utility.Convert2dTo1d(x, y);
+            else
+                throw new IndexOutOfRangeException("x/y must be below width/heigh and above");
         }
         public static void WriteSubWindow(SubWindow sw) 
         {
